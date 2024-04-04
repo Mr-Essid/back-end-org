@@ -139,6 +139,7 @@ async def get_employers(page: int = 1, current_user=Depends(get_current_user)):
 
     if current_user[User.AUTHORITIES] != Authorities.ROOT:
         raise access_forbidden
+
     if page < 1:
         page = 1
     skip = (page - 1) * 15

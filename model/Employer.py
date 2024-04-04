@@ -45,7 +45,6 @@ class EmployerRequest(BaseModel):
     is_active: bool = True
     email_verified: bool = False
 
-
     def __dict__(self):
         return {
             'full_name': self.full_name,
@@ -59,6 +58,20 @@ class EmployerRequest(BaseModel):
             'create_at': self.create_at,
             'updated_at': self.update_at
         }
+
+    @model_validator(mode='before')
+    @classmethod
+    def atLeastOne_(cls, data: dict):
+        for k, v in data.items():
+            if k == User.AUTHORITIES:
+                if v not in [1, 2]:
+                    raise ValueError('Authorities must be in 1 or 2')
+            if k == User.ROLE:
+                print(set(Roles))
+                if v not in set(Roles):
+                    raise ValueError('Roles Must Be in EMP, TL')
+
+        return data
 
 
 class EmployerResponse(EmployerRequest):
@@ -103,7 +116,6 @@ class EmployerUpdatePrivate(BaseModel):
         if not isThereIsOne:
             raise ValueError('At Least one Attribute to Update')
         return data
-
 
 
 class UpdatePassword(BaseModel):

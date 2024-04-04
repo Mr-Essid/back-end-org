@@ -7,6 +7,8 @@
     <list default="true" id="6528f919-17b8-4747-9753-cee933799b31" name="Changes" comment="">
       <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/Employer.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Employer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/route/routes_employer.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/routes_employer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
