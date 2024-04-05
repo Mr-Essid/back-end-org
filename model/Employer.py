@@ -8,7 +8,6 @@ from bson.objectid import ObjectId
 from typing import Any
 from pydantic_core import core_schema
 
-from Authorities import Authorities
 from schemes import User
 
 
@@ -29,10 +28,9 @@ PyObjectId = Annotated[
 
 
 class Roles(StrEnum):
-    EMPLOYER = 'EMP'
-    ENTREPRENEUR = 'ENP'
-    TEAM_LEADER = 'TL'
-    ADMIN = 'AD'
+    EMPLOYER = 'EMPLOYER'
+    ADMIN = 'ADMIN'
+    D_MANAGER = 'DEPARTMENT_MANAGER'
 
 
 class EmployerRequest(BaseModel):
@@ -41,8 +39,7 @@ class EmployerRequest(BaseModel):
     email: EmailStr = Field(max_length=100)
     nid: str = Field(max_length=8)
     password: str
-    role: Optional[Roles] = Field(default=Roles.EMPLOYER)
-    authorities: Authorities = Authorities.EMPLOYER
+    role: Optional[Roles] = Field(default=Roles.EMPLOYER, to_upper=True)
     is_active: bool = True
     email_verified: bool = False
     id_dep: int
@@ -65,12 +62,7 @@ class EmployerRequest(BaseModel):
     @classmethod
     def atLeastOne_(cls, data: dict):
         for k, v in data.items():
-            if k == User.AUTHORITIES:
-                if v not in [1, 2]:
-                    raise ValueError('Authorities must be in 1 or 2')
-            if k == User.ROLE:
-                if v not in set(Roles):
-                    raise ValueError('Roles Must Be in EMP, TL')
+
             if k == User.ID_DEPARTMENT:
                 if v not in [1, 2, 3]:
                     raise ValueError('No Specific Department Assigned')
@@ -96,7 +88,6 @@ class EmployerUpdatePrivate(BaseModel):
     id_: str = Field(alias='_id')
     uid: str | None = None
     role: Roles | None = None
-    authorities: Authorities | None = None
     is_active: bool | None = None
 
     @classmethod
@@ -117,5 +108,5 @@ class UpdatePassword(BaseModel):
 
 
 if __name__ == '__main__':
-    with open('./EmployerSchema.json', mode='w') as json_file:
+    with open('employerSchema.json', mode='w') as json_file:
         json_file.write(EmployerResponse.model_json_schema().__str__())

@@ -8,13 +8,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from starlette import status
 from starlette.requests import Request
 
-from Authorities import Authorities
 from database_config.configdb import db
-from model.Employer import EmployerRequest, EmployerResponse, EmployerUpdate, UpdatePassword, EmployerUpdatePrivate
+from model.Employer import EmployerRequest, EmployerResponse, EmployerUpdate, UpdatePassword, EmployerUpdatePrivate, \
+    Roles
 from bson.objectid import ObjectId
 from database_config.Collections import Collections
 from schemes import User
-from utiles import from_bson, verify_password, crypt_pass
+from utiles import from_bson, verify_password, crypt_pass, is_bson_id
 from fastapi_mail import ConnectionConfig, MessageSchema, MessageType, FastMail
 from env import load_smtp
 from .login_route import get_current_user
@@ -41,6 +41,7 @@ conf = ConnectionConfig(
 
 @employer_route.get('/v/email-verify')
 async def active_account(key: str, request: Request):
+    is_bson_id(key)
     user = await db.get_collection(Collections.USER).find_one({'_id': ObjectId(key)})
     state = user['email_verified']
     if state:
@@ -79,15 +80,13 @@ async def forget_password(email: str):
     if user_ is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="your email are not correct")
 
-    if user_[User.AUTHORITIES] < 2:
+    if not user_[User.ROLE] == Roles.EMPLOYER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='please call your administrator'
         )
 
     new_pass_gen = ''.join(random.choices(string.digits + string.hexdigits + string.ascii_letters, k=20))
-
-
 
     current_date = datetime.datetime.today()
     last_update = user_[User.UPDATE_AT]
@@ -110,7 +109,8 @@ async def forget_password(email: str):
     await fm.send_message(message, template_name='forget_password.html')
 
     hashed_new_password = crypt_pass(new_pass_gen)
-    res = await db.get_collection(Collections.USER).update_one({'email': email}, {'$set': {'password': hashed_new_password, 'update_at': datetime.datetime.today()}})
+    res = await db.get_collection(Collections.USER).update_one({'email': email}, {
+        '$set': {'password': hashed_new_password, 'update_at': datetime.datetime.today()}})
 
     return {
         'status': 'password modified, check your email'
@@ -119,10 +119,9 @@ async def forget_password(email: str):
 
 @employer_route.get('/{id_user}')
 async def employer_by_id(id_user: str, current_user=Depends(get_current_user)):
-    print(current_user[User.AUTHORITIES])
-    print(Authorities.ROOT)
+    is_bson_id(id_user)
 
-    if not (current_user[User.AUTHORITIES] == Authorities.ROOT or str(current_user[User.ID_]) == id_user):
+    if not (current_user[User.ROLE] == Roles.ADMIN or str(current_user[User.ID_]) == id_user):
         raise access_forbidden
 
     employer = await db.get_collection(Collections.USER).find_one({'_id': ObjectId(id_user), 'is_active': True})
@@ -134,10 +133,7 @@ async def employer_by_id(id_user: str, current_user=Depends(get_current_user)):
 
 @employer_route.get('/')
 async def get_employers(page: int = 1, current_user=Depends(get_current_user)):
-    print(current_user[User.AUTHORITIES])
-    print(Authorities.ROOT)
-
-    if current_user[User.AUTHORITIES] != Authorities.ROOT:
+    if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
 
     if page < 1:
@@ -151,7 +147,7 @@ async def get_employers(page: int = 1, current_user=Depends(get_current_user)):
 
 @employer_route.post('/')
 async def add_employer(user: EmployerRequest, request: Request, current_user=Depends(get_current_user)):
-    if current_user[User.AUTHORITIES] != Authorities.ROOT:
+    if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
 
     user = user.model_dump(by_alias=True)
@@ -187,6 +183,7 @@ async def add_employer(user: EmployerRequest, request: Request, current_user=Dep
 
 @employer_route.put('/')
 async def update(data: EmployerUpdate, current_user=Depends(get_current_user)):
+    is_bson_id(current_user[User.ID_])
     id_ = ObjectId(current_user[User.ID_])
     data_present = {k: v for k, v in data.__dict__.items() if v is not None}
     res = await db.get_collection(Collections.USER).update_one({'_id': id_}, {"$set": data_present})
@@ -196,9 +193,10 @@ async def update(data: EmployerUpdate, current_user=Depends(get_current_user)):
 
 @employer_route.put('/private')
 async def update_private(data: EmployerUpdatePrivate, current_user=Depends(get_current_user)):
-    if current_user[User.AUTHORITIES] != Authorities.ROOT:
+    if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
 
+    is_bson_id(data.id_)
     id_ = ObjectId(data.id_)
     data_present = {k: v for k, v in data.__dict__.items() if v is not None}
     res = await db.get_collection(Collections.USER).update_one({'_id': id_}, {"$set": data_present})
@@ -208,9 +206,9 @@ async def update_private(data: EmployerUpdatePrivate, current_user=Depends(get_c
 
 @employer_route.delete('/{id_}')
 async def soft_delete(id_: str, current_user=Depends(get_current_user)):
-    if current_user[User.AUTHORITIES] != Authorities.ROOT:
+    if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
-
+    is_bson_id(id_)
     id_ = ObjectId(id_)
     res = await db.get_collection(Collections.USER).update_one({'_id': id_}, {'$set': {'is_active': False}})
     print(res.modified_count)

@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, HTTPException
 from route.routes_employer import employer_route
 from route.login_route import login_route
 from starlette import status
+from route.project_route import project_route
 from route.department_route import department_route
 from database_config.configdb import Database
 import uvicorn
@@ -38,6 +39,8 @@ async def main_route():
 app.include_router(router=employer_route, tags=['Employer Actions'])
 app.include_router(router=login_route, tags=['Login'])
 app.include_router(router=department_route, tags=['Department Actions'])
+app.include_router(router=project_route, tags=['Project Actions'])
+
 
 
 if __name__ == '__main__':

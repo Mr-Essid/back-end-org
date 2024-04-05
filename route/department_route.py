@@ -2,10 +2,10 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends
 from starlette import status
 
-from Authorities import Authorities
 from database_config.Collections import Collections
 from database_config.configdb import db
 from model.Departement import Department
+from model.Employer import Roles
 from schemes import DepartmentS, User
 from utiles import from_bson
 from .login_route import get_current_user
@@ -22,7 +22,7 @@ async def get_all_depart():
 
 @department_route.post('/departments')
 async def add_depart(department_data: Department, current_user=Depends(get_current_user)):
-    if current_user[User.AUTHORITIES] != Authorities.ROOT:
+    if current_user[User.ROLE] != Roles.ADMIN:
         raise ValueError('request not permitted')
 
     department_data = department_data.model_dump()
