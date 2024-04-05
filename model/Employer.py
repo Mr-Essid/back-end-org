@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 from typing import Any
 from pydantic_core import core_schema
 
+from Authorities import Authorities
 from schemes import User
 
 
@@ -44,6 +45,7 @@ class EmployerRequest(BaseModel):
     authorities: int = 2
     is_active: bool = True
     email_verified: bool = False
+    id_dep: int
 
     def __dict__(self):
         return {
@@ -67,9 +69,11 @@ class EmployerRequest(BaseModel):
                 if v not in [1, 2]:
                     raise ValueError('Authorities must be in 1 or 2')
             if k == User.ROLE:
-                print(set(Roles))
                 if v not in set(Roles):
                     raise ValueError('Roles Must Be in EMP, TL')
+            if k == User.ID_DEPARTMENT:
+                if v not in [1, 2, 3]:
+                    raise ValueError('No Specific Department Assigned')
 
         return data
 
@@ -91,27 +95,16 @@ class EmployerUpdate(BaseModel):
 class EmployerUpdatePrivate(BaseModel):
     id_: str = Field(alias='_id')
     uid: str | None = None
-    role: str | None = None
-    authorities: int | None = None
+    role: Roles | None = None
+    authorities: Authorities | None = None
     is_active: bool | None = None
 
-    @model_validator(mode='before')
     @classmethod
     def atLeastOne_(cls, data: dict):
         isThereIsOne = False
-
         for k, v in data.items():
             if v is not None and k != '_id':
                 isThereIsOne = True
-
-            if k == User.AUTHORITIES:
-                if v not in [1, 2]:
-                    raise ValueError('Authorities must be in 1 or 2')
-
-            if k == User.ROLE:
-                print(set(Roles))
-                if v not in set(Roles):
-                    raise ValueError('Roles Must Be in EMP, TL')
 
         if not isThereIsOne:
             raise ValueError('At Least one Attribute to Update')
