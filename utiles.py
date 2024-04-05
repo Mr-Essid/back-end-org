@@ -1,6 +1,7 @@
 from bson.objectid import ObjectId
 from hashlib import sha256
 
+IS_PROTECTION = False
 
 def from_bson(bsion: dict, Model):
     dict_ = {k: v for k, v in bsion.items() if type(v) != ObjectId}

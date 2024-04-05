@@ -42,7 +42,7 @@ class EmployerRequest(BaseModel):
     nid: str = Field(max_length=8)
     password: str
     role: Optional[Roles] = Field(default=Roles.EMPLOYER)
-    authorities: int = 2
+    authorities: Authorities = Authorities.EMPLOYER
     is_active: bool = True
     email_verified: bool = False
     id_dep: int
@@ -114,3 +114,8 @@ class EmployerUpdatePrivate(BaseModel):
 class UpdatePassword(BaseModel):
     old_password: str
     new_password: str
+
+
+if __name__ == '__main__':
+    with open('./EmployerSchema.json', mode='w') as json_file:
+        json_file.write(EmployerResponse.model_json_schema().__str__())
