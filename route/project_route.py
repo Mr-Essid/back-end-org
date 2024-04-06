@@ -69,6 +69,9 @@ async def get_all_projects(page: int = 1, current_user=Depends(get_current_user)
     start = (page - 1) * 15
     len_ = 15
     all_project_as_bson = await db.get_collection(Collections.PROJECT).find().skip(start).limit(len_).to_list(15)
+
+    if len(all_project_as_bson) == 0:
+        return []
     all_project_as_list = list(map(lambda item: from_bson(item, ProjectResponse), all_project_as_bson))
     return all_project_as_list
 
@@ -153,6 +156,8 @@ async def get_project_department(id_dep: int, page: int=1, current_user: dict = 
         )
     data_ = await db.get_collection(Collections.PROJECT).find({schemes.Project.DEPARTMENT_ID: id_dep}).skip(page).limit(
         len_).to_list(len_)
+    if len(data_) == 0:
+        return []
     python_data = list(map(lambda item: from_bson(item, ProjectResponse), data_))
     return python_data
 

@@ -141,6 +141,10 @@ async def get_employers(page: int = 1, current_user=Depends(get_current_user)):
     skip = (page - 1) * 15
     list_employers = await db.get_collection(Collections.USER).find({'is_active': True}).skip(skip).limit(15).to_list(
         15)
+
+    # fix small issue with deployment process
+    if len(list_employers) == 0:
+        return []
     list_employers = list(map(lambda item: from_bson(item, EmployerResponse), list_employers))
     return list_employers
 
