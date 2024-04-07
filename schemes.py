@@ -5,6 +5,7 @@ class User(StrEnum):
     FULL_NAME = 'fill_name'
     EMAIL = 'email'
     NID = 'nid'
+    FACE_CODDING = 'face_coding'
     PASSWORD = 'password'
     ROLE = 'role'
     IS_ACTIVE = 'is_active'

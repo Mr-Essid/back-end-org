@@ -6,6 +6,17 @@ from starlette import status
 
 IS_PROTECTION = False
 
+"""
+    Actions Access
+"""
+
+Employer_access = ['Employer Actions']
+Department_Manager_only = ['Department Manager Only Actions']
+Admin_only = ['Admin Only Actions']
+Admin_Department_manager = ['Admin - Department Manager Actions']
+RaspberryPi_Admin = ['Admin - RaspberryPI Actions']
+
+
 
 def from_bson(bsion: dict, Model):
     dict_ = {k: v for k, v in bsion.items() if type(v) != ObjectId}

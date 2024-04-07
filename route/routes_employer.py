@@ -8,16 +8,19 @@ from fastapi import APIRouter, HTTPException, Depends
 from starlette import status
 from starlette.requests import Request
 
+import schemes
 from database_config.configdb import db
 from model.Employer import EmployerRequest, EmployerResponse, EmployerUpdate, UpdatePassword, EmployerUpdatePrivate, \
-    Roles
+    Roles, UpgradeEmployer
 from bson.objectid import ObjectId
 from database_config.Collections import Collections
 from schemes import User
-from utiles import from_bson, verify_password, crypt_pass, is_bson_id
+from utiles import from_bson, verify_password, crypt_pass, is_bson_id, RaspberryPi_Admin, Admin_Department_manager, \
+    Employer_access, Admin_only
 from fastapi_mail import ConnectionConfig, MessageSchema, MessageType, FastMail
 from env import load_smtp
 from .login_route import get_current_user
+from .project_route import check_for_contributed_resources, check_permission
 
 employer_route = APIRouter(prefix='/employers')
 host_smtp, username_smtp, password_smtp, from_mail, from_name, port = load_smtp()
@@ -37,6 +40,7 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True,
     TEMPLATE_FOLDER='./email_models'
 )
+
 
 
 @employer_route.get('/v/email-verify')
@@ -117,7 +121,55 @@ async def forget_password(email: str):
     }
 
 
-@employer_route.get('/{id_user}')
+@employer_route.get('/department/managers', tags=RaspberryPi_Admin)
+async def employers_get_department_managers(current_user=Depends(get_current_user)):
+    """
+    :key:\n
+        Access only by RaspberryPI
+    :return:
+    will be like\n
+    [{\n
+    department:\n
+        Department\n
+    manager:\n
+        EmployerResponse\n
+    }, ...]
+    """
+    all_departments = await db.get_collection(Collections.DEPARTMENT).find({}, {'_id': 0}).to_list(15)
+
+    # we can't use async with map :(
+    async def get_manager_and_department(department_dict: dict):
+        department_id = department_dict[schemes.DepartmentS.DEPARTMENT_IDENTIFICATION]
+        manager_of_department = await db.get_collection(Collections.USER).find_one(
+            {User.ROLE: Roles.D_MANAGER, User.ID_DEPARTMENT: department_id})
+
+        if manager_of_department is not None:
+            manager_of_department = from_bson(manager_of_department, EmployerResponse)
+
+        return {
+            'department': department_dict,
+            'manager': manager_of_department
+        }
+
+    all_departments_with_there_managers = [await get_manager_and_department(department) for department in
+                                           all_departments]
+    return all_departments_with_there_managers
+
+
+@employer_route.get('/department/{id_depart}', tags=Admin_Department_manager)
+async def employers_of_department(id_department: int, page: int = 1, current_user: dict = Depends(get_current_user)):
+    page = (page - 1) * 15
+    check_for_contributed_resources(current_user, id_department)
+    check_permission(current_user, [Roles.D_MANAGER, Roles.ADMIN])
+    list_employers_ = await db.get_collection(Collections.USER).find({schemes.User.ID_DEPARTMENT: id_department}).skip(
+        page).limit(15).to_list(15)
+    if len(list_employers_) == 0:
+        return []
+    list_python_ = list(map(lambda item: from_bson(item, EmployerResponse), list_employers_))
+    return list_python_
+
+
+@employer_route.get('/{id_user}', tags=Employer_access)
 async def employer_by_id(id_user: str, current_user=Depends(get_current_user)):
     is_bson_id(id_user)
 
@@ -131,7 +183,7 @@ async def employer_by_id(id_user: str, current_user=Depends(get_current_user)):
     return from_bson(employer, EmployerResponse)
 
 
-@employer_route.get('/')
+@employer_route.get('/', tags=Admin_only)
 async def get_employers(page: int = 1, current_user=Depends(get_current_user)):
     if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
@@ -149,7 +201,7 @@ async def get_employers(page: int = 1, current_user=Depends(get_current_user)):
     return list_employers
 
 
-@employer_route.post('/')
+@employer_route.post('/', tags=Admin_only)
 async def add_employer(user: EmployerRequest, request: Request, current_user=Depends(get_current_user)):
     if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
@@ -185,7 +237,7 @@ async def add_employer(user: EmployerRequest, request: Request, current_user=Dep
     return from_bson(user_, EmployerResponse)
 
 
-@employer_route.put('/')
+@employer_route.put('/', tags=Employer_access)
 async def update(data: EmployerUpdate, current_user=Depends(get_current_user)):
     is_bson_id(current_user[User.ID_])
     id_ = ObjectId(current_user[User.ID_])
@@ -195,7 +247,7 @@ async def update(data: EmployerUpdate, current_user=Depends(get_current_user)):
     return {'employer': from_bson(user, EmployerResponse), 'is_modified': res.modified_count > 0}
 
 
-@employer_route.put('/private')
+@employer_route.put('/private', tags=Admin_only)
 async def update_private(data: EmployerUpdatePrivate, current_user=Depends(get_current_user)):
     if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
@@ -205,21 +257,50 @@ async def update_private(data: EmployerUpdatePrivate, current_user=Depends(get_c
     data_present = {k: v for k, v in data.__dict__.items() if v is not None}
     res = await db.get_collection(Collections.USER).update_one({'_id': id_}, {"$set": data_present})
     user = await db.get_collection(Collections.USER).find_one({'_id': id_})
+
     return {'employer': from_bson(user, EmployerResponse), 'is_modified': res.modified_count > 0}
 
 
-@employer_route.delete('/{id_}')
+@employer_route.put('/grade', tags=Admin_only)
+async def upgrade_(data: UpgradeEmployer):
+    data = data.model_dump()
+    department = data['department_id']
+    employer_ = data['employer_id']
+    face_coding_of_employer = data['face_coding']
+
+    if len(face_coding_of_employer) != 128:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='face coding is not compatible with the model')
+
+    res_of_update = await db.get_collection(Collections.USER).update_one(
+        {User.ROLE: Roles.D_MANAGER, User.ID_DEPARTMENT: department}, {'$set': {User.ROLE: Roles.EMPLOYER}})
+    res_ = await db.get_collection(Collections.USER).update_one(
+        {User.ID_: ObjectId(employer_)},
+        {'$set': {User.FACE_CODDING: face_coding_of_employer}, User.ROLE: Roles.D_MANAGER}
+    )
+
+    if res_.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_304_NOT_MODIFIED,
+            detail='No Modification Found'
+        )
+
+    return {
+        'status': 'employer updated successfully'
+    }
+
+
+@employer_route.delete('/{id_}', tags=Admin_only)
 async def soft_delete(id_: str, current_user=Depends(get_current_user)):
     if current_user[User.ROLE] != Roles.ADMIN:
         raise access_forbidden
     is_bson_id(id_)
     id_ = ObjectId(id_)
     res = await db.get_collection(Collections.USER).update_one({'_id': id_}, {'$set': {'is_active': False}})
-    print(res.modified_count)
     return {'state': 'Account Deleted Successfully'}
 
 
-@employer_route.put('/password')
+@employer_route.put('/password', tags=Employer_access)
 async def update_pass(password: UpdatePassword, current_user: dict = Depends(get_current_user)):
     new_pass = password.new_password
     old_pass = password.old_password

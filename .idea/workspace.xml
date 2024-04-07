@@ -5,8 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6528f919-17b8-4747-9753-cee933799b31" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/Employer.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Employer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route/project_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/project_route.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route/routes_employer.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/routes_employer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/schemes.py" beforeDir="false" afterPath="$PROJECT_DIR$/schemes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utiles.py" beforeDir="false" afterPath="$PROJECT_DIR$/utiles.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,20 +40,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.Project.executor": "Run",
-    "Python.UserUSECASE.executor": "Run",
-    "Python.configdb.executor": "Run",
-    "Python.env.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/mr-essid/pfe/entreprise-application"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.Project.executor&quot;: &quot;Run&quot;,
+    &quot;Python.UserUSECASE.executor&quot;: &quot;Run&quot;,
+    &quot;Python.configdb.executor&quot;: &quot;Run&quot;,
+    &quot;Python.env.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/mr-essid/pfe/entreprise-application&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />

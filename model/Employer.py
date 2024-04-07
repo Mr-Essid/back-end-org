@@ -42,6 +42,7 @@ class EmployerRequest(BaseModel):
     role: Optional[Roles] = Field(default=Roles.EMPLOYER, to_upper=True)
     is_active: bool = True
     email_verified: bool = False
+    face_coding: list[float] | None = None
     id_dep: int
 
     def __dict__(self):
@@ -53,12 +54,12 @@ class EmployerRequest(BaseModel):
             'role': self.role,
             'authorities': self.authorities,
             'is_active': self.is_active,
+            'id_dep': self.id_dep,
             'email_verified': self.email_verified,
             'create_at': self.create_at,
             'updated_at': self.update_at
         }
 
-    @model_validator(mode='before')
     @classmethod
     def atLeastOne_(cls, data: dict):
         for k, v in data.items():
@@ -87,7 +88,6 @@ class EmployerUpdate(BaseModel):
 class EmployerUpdatePrivate(BaseModel):
     id_: str = Field(alias='_id')
     uid: str | None = None
-    role: Roles | None = None
     is_active: bool | None = None
 
     @classmethod
@@ -105,6 +105,12 @@ class EmployerUpdatePrivate(BaseModel):
 class UpdatePassword(BaseModel):
     old_password: str
     new_password: str
+
+
+class UpgradeEmployer(BaseModel):
+    employer_id: str
+    department_id: int
+    face_coding: list[float]
 
 
 if __name__ == '__main__':

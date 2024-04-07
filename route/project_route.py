@@ -8,7 +8,7 @@ from model.Employer import Roles
 from .login_route import get_current_user
 from database_config.configdb import db
 from model.Project import Project, ProjectResponse, ProjectUpdate, ProjectFU
-from utiles import from_bson, get_filled_only, is_bson_id
+from utiles import from_bson, get_filled_only, is_bson_id, Admin_only, Employer_access, Admin_Department_manager, Department_Manager_only
 
 project_route = APIRouter(prefix='/project')
 
@@ -38,10 +38,8 @@ project_route = APIRouter(prefix='/project')
 """
 
 
-def check_permission(current_user: dict, target_role: Roles):
-    if target_role == Roles.EMPLOYER:
-        return
-    if current_user[schemes.User.ROLE] != target_role:
+def check_permission(current_user: dict, target_roles: list[Roles]):
+    if not current_user[schemes.User.ROLE] in target_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='request not permitted'
@@ -49,7 +47,6 @@ def check_permission(current_user: dict, target_role: Roles):
 
 
 def check_for_contributed_resources(current_user: dict, id_project_department: int):
-
     if current_user[schemes.User.ROLE] == Roles.ADMIN:
         return
 
@@ -60,12 +57,10 @@ def check_for_contributed_resources(current_user: dict, id_project_department: i
         )
 
 
-
-
 # ALL BASC actions add/update/delete(soft)/read one_by_id or many
-@project_route.get('/all')
+@project_route.get('/all', tags=Admin_only)
 async def get_all_projects(page: int = 1, current_user=Depends(get_current_user)):
-    check_permission(current_user, Roles.ADMIN)
+    check_permission(current_user, [Roles.ADMIN])
     start = (page - 1) * 15
     len_ = 15
     all_project_as_bson = await db.get_collection(Collections.PROJECT).find().skip(start).limit(len_).to_list(15)
@@ -76,7 +71,7 @@ async def get_all_projects(page: int = 1, current_user=Depends(get_current_user)
     return all_project_as_list
 
 
-@project_route.get('/{id_project}')
+@project_route.get('/{id_project}', tags=Employer_access)
 async def get_project_by_id(id_project: str, current_user: dict = Depends(get_current_user)):
     is_bson_id(id_project)
     bson_id = ObjectId(id_project)
@@ -92,9 +87,9 @@ async def get_project_by_id(id_project: str, current_user: dict = Depends(get_cu
     return from_bson(project_as_bison, ProjectResponse)
 
 
-@project_route.post('/')
+@project_route.post('/', tags=Admin_only)
 async def add_project(project_: Project, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, Roles.ADMIN)
+    check_permission(current_user, [Roles.ADMIN])
     json_format = project_.model_dump()
     json_format.update({'create_at: ': datetime.datetime.now()})
     json_format.update({'update_at': datetime.datetime.now()})
@@ -103,9 +98,9 @@ async def add_project(project_: Project, current_user: dict = Depends(get_curren
     return from_bson(bson_return, ProjectResponse)
 
 
-@project_route.put('/')
+@project_route.put('/', tags=Admin_only)
 async def update_project(project_update_model: ProjectUpdate, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, Roles.ADMIN)
+    check_permission(current_user, [Roles.ADMIN])
     data_ = project_update_model.model_dump(by_alias=True)
     data_ = get_filled_only(data_)
     id_ = data_.pop('_id')
@@ -130,9 +125,9 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
     return state
 
 
-@project_route.delete('/{id_pro}')
+@project_route.delete('/{id_pro}', tags=Admin_only)
 async def delete_project(id_proj: str, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, Roles.ADMIN)
+    check_permission(current_user, [Roles.ADMIN])
     is_bson_id(id_proj)
     res_ = await db.get_collection(Collections.PROJECT).update_one({'_id': ObjectId(id_proj)},
                                                                    {'$set': {schemes.Project.IS_ACTIVE: False}})
@@ -141,8 +136,8 @@ async def delete_project(id_proj: str, current_user: dict = Depends(get_current_
 
 
 # ADVANCED OPERATIONS
-@project_route.get('/department/{id_dep}', tags=['department related object'])
-async def get_project_department(id_dep: int, page: int=1, current_user: dict = Depends(get_current_user)):
+@project_route.get('/department/{id_dep}', tags= Employer_access)
+async def get_project_department(id_dep: int, page: int = 1, current_user: dict = Depends(get_current_user)):
     check_for_contributed_resources(current_user, id_dep)
     page = (page - 1) * 15
     len_ = 15
@@ -164,16 +159,16 @@ async def get_project_department(id_dep: int, page: int=1, current_user: dict = 
 
 # FREQUENTLY ACTIONS : this and the function update are the same but for bandwidth and complexity raison with have separated them!
 
-@project_route.put('frequently-actions', tags=['update frequently action'])
+@project_route.put('frequently-actions', tags=Department_Manager_only)
 async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, Roles.D_MANAGER)
+    check_permission(current_user, [Roles.D_MANAGER])
     data_ = update_fa_model.model_dump(by_alias=True)
     data_ = get_filled_only(data_)
     id_ = data_.pop('_id')
     is_bson_id(id_)
     project_ = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
-
-    check_for_contributed_resources(current_user, project_[schemes.Project.DEPARTMENT_ID]) # check whether the manager and the project in the same department
+    check_for_contributed_resources(current_user, project_[
+        schemes.Project.DEPARTMENT_ID])  # check whether the manager and the project in the same department
     res_ = await db.get_collection(Collections.PROJECT).update_one({'_id': ObjectId(id_)}, {'$set': data_})
     modified = res_.modified_count
     state = {
@@ -182,7 +177,9 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
 
     if modified == 0:
         state.update({'state': 'no thing have been changed'})
+
     else:
         project_after_update = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
         state.update({'new_': from_bson(project_after_update, ProjectResponse)})
     return state
+
