@@ -38,3 +38,16 @@ class Project(StrEnum):
     FUNCTIONAL_DELAY = 'functional_delay'
     CREATE_AT = 'create_at'
     UPDATE_AT = 'update_at'
+
+
+class HistoryDepartmentS(StrEnum):
+    EMPLOYER_ID = 'employer_id'
+    DEPARTMENT_ID = 'department_id'
+    DATE = 'date_'
+    TIME = 'time_'
+
+
+class HistorySecureS(StrEnum):
+    MANAGER_ID = 'manager_id'
+    DATE = 'date_'
+    TIME = 'time_'

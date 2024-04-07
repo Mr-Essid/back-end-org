@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "name_department": {
+      "title": "Name Department",
+      "type": "string"
+    },
+    "department_identification": {
+      "title": "Department Identification",
+      "type": "integer"
+    },
+    "create_at": {
+      "format": "date-time",
+      "title": "Create At",
+      "type": "string"
+    },
+    "update_at": {
+      "format": "date-time",
+      "title": "Update At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name_department",
+    "department_identification",
+    "create_at",
+    "update_at"
+  ],
+  "title": "Department",
+  "type": "object"
+}

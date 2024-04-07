@@ -1,4 +1,5 @@
 import datetime
+import json
 from typing import Optional, Annotated, Union
 from enum import Enum, StrEnum
 from pydantic import BaseModel, EmailStr, ConfigDict, AfterValidator, PlainSerializer, WithJsonSchema, model_validator, \
@@ -115,4 +116,5 @@ class UpgradeEmployer(BaseModel):
 
 if __name__ == '__main__':
     with open('employerSchema.json', mode='w') as json_file:
-        json_file.write(EmployerResponse.model_json_schema().__str__())
+        json_ = EmployerResponse.model_json_schema()
+        json.dump(json_, indent=2, fp=json_file)

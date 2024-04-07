@@ -1,0 +1,26 @@
+{
+  "description": "in this point we can add raison to enter place",
+  "properties": {
+    "manager_id": {
+      "title": "Manager Id",
+      "type": "string"
+    },
+    "date_": {
+      "format": "date",
+      "title": "Date ",
+      "type": "string"
+    },
+    "time_": {
+      "format": "date",
+      "title": "Time ",
+      "type": "string"
+    }
+  },
+  "required": [
+    "manager_id",
+    "date_",
+    "time_"
+  ],
+  "title": "HistorySecure",
+  "type": "object"
+}

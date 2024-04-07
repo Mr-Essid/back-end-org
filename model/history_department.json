@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "employer_id": {
+      "title": "Employer Id",
+      "type": "string"
+    },
+    "department_id": {
+      "title": "Department Id",
+      "type": "string"
+    },
+    "date_": {
+      "format": "date",
+      "title": "Date ",
+      "type": "string"
+    },
+    "time_": {
+      "format": "time",
+      "title": "Time ",
+      "type": "string"
+    }
+  },
+  "required": [
+    "employer_id",
+    "department_id",
+    "date_",
+    "time_"
+  ],
+  "title": "HistoryDepartment",
+  "type": "object"
+}
