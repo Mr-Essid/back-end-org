@@ -13,6 +13,8 @@ import json
 from bson import ObjectId
 from pydantic import BaseModel, model_validator
 
+from schemes import HistoryDepartmentS, HistorySecureS
+
 """
     actions:
         READ
@@ -26,18 +28,16 @@ from pydantic import BaseModel, model_validator
 
 class HistoryDepartment(BaseModel):
     employer_id: str  # will be our ObjectId
-    department_id: str  # this is not a fault we know all that we can access this man from the employer but this is optimization that will help us improve our fetch by department, thank you!
-    date_: datetime.date
-    time_: datetime.time
+    department_id: int  # this is not a fault we know all that we can access this man from the employer but this is optimization that will help us improve our fetch by department, thank you!
+    date_time: datetime.datetime
 
     """
         We missed this in older models, but it has been corrected in the controller.
     """
-
     @model_validator(mode='before')
     @classmethod
     def check_of_employer_id_valid_objectid(cls, data):
-        if not ObjectId.is_valid(data.employer_id):
+        if not ObjectId.is_valid(data[HistoryDepartmentS.EMPLOYER_ID]):
             raise ValueError('Incorrect Employer Id, Same Thing Went Wrong')
         return data
 
@@ -54,13 +54,13 @@ class HistorySecure(BaseModel):
         in this point we can add raison to enter place
     """
     manager_id: str
-    date_: datetime.date
-    time_: datetime.date
+    date_time: datetime.datetime
+
 
     @model_validator(mode='before')
     @classmethod
     def check_of_employer_id_valid_objectid(cls, data):
-        if not ObjectId.is_valid(data.manager_id):
+        if not ObjectId.is_valid(data[HistorySecureS.MANAGER_ID]):
             raise ValueError('Incorrect Manager Id, Same Thing Went Wrong')
         return data
 

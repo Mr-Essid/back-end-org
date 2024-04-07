@@ -6,24 +6,18 @@
     },
     "department_id": {
       "title": "Department Id",
-      "type": "string"
+      "type": "integer"
     },
-    "date_": {
-      "format": "date",
-      "title": "Date ",
-      "type": "string"
-    },
-    "time_": {
-      "format": "time",
-      "title": "Time ",
+    "date_time": {
+      "format": "date-time",
+      "title": "Date Time",
       "type": "string"
     }
   },
   "required": [
     "employer_id",
     "department_id",
-    "date_",
-    "time_"
+    "date_time"
   ],
   "title": "HistoryDepartment",
   "type": "object"

@@ -5,21 +5,15 @@
       "title": "Manager Id",
       "type": "string"
     },
-    "date_": {
-      "format": "date",
-      "title": "Date ",
-      "type": "string"
-    },
-    "time_": {
-      "format": "date",
-      "title": "Time ",
+    "date_time": {
+      "format": "date-time",
+      "title": "Date Time",
       "type": "string"
     }
   },
   "required": [
     "manager_id",
-    "date_",
-    "time_"
+    "date_time"
   ],
   "title": "HistorySecure",
   "type": "object"

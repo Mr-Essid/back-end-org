@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from pydantic import BaseModel, Field, model_validator
 from enum import StrEnum
@@ -96,4 +97,4 @@ if __name__ == '__main__':
     """
 
     with open('./projectJsonSchema.json', mode='w') as json_file:
-        json_file.write(ProjectResponse.model_json_schema().__str__())
+        json.dump(Project.model_json_schema(), indent=2, fp=json_file)

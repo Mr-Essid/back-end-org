@@ -43,11 +43,9 @@ class Project(StrEnum):
 class HistoryDepartmentS(StrEnum):
     EMPLOYER_ID = 'employer_id'
     DEPARTMENT_ID = 'department_id'
-    DATE = 'date_'
-    TIME = 'time_'
+    DATE_TIME = 'date_time'
 
 
 class HistorySecureS(StrEnum):
     MANAGER_ID = 'manager_id'
-    DATE = 'date_'
-    TIME = 'time_'
+    DATE_TIME = 'date_time'
