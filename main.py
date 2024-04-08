@@ -2,7 +2,6 @@ import time
 import os
 from datetime import datetime
 
-import dotenv
 from fastapi import FastAPI, Request, HTTPException
 from apscheduler.schedulers.background import BackgroundScheduler
 from starlette import status
@@ -76,9 +75,6 @@ def crypt_synchronize():
         file.write(new_key)
 
     fernet_en_key = CRYPTO_KEY_RASPBERRYPI.encode()
-    os.putenv(API_KEY, RASPBERRYPI_KEY)
-    path_dot_env = dotenv.find_dotenv()
-    dotenv.set_key(path_dot_env, API_KEY, RASPBERRYPI_KEY)
     data_encrypted = encrypt_api_key(RASPBERRYPI_KEY, fernet_en_key)
     fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
     print('job done')
