@@ -39,24 +39,7 @@ def check_for_contributed_history(current_user: dict, history_id_employer: str):
         )
 
 
-@history_route.post('/department')
-async def add_department_history(history_dep_model: HistoryDepartment):
-    data = history_dep_model.model_dump()
-    current_date_time = datetime.datetime.now()
-    data[HistoryDepartmentS.DATE_TIME] = current_date_time
-    inserted_id = await db.get_collection(Collections.HISTORY_DEPARTMENT).insert_one(
-        data)  # this is the only await should be executed
-    return {'status': f'history inserted {str(inserted_id.inserted_id)}'}
 
-
-@history_route.post('/secure')
-async def add_secure_history(history_secure_model: HistorySecure):
-    data = history_secure_model.model_dump()
-    current_date_time = datetime.datetime.now()
-    data[HistorySecureS.DATE_TIME] = current_date_time
-    inserted_id = await db.get_collection(Collections.HISTORY_SECURE).insert_one(
-        data)  # this is the only await should be executed
-    return {'status': f'history inserted {str(inserted_id.inserted_id)}'}
 
 
 @history_route.get('/department/{department_id}')
