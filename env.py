@@ -32,3 +32,10 @@ def load_smtp():
     return SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_MAIL,SMTP_MAIL_FROM_NAME, PORT
 
 
+def load_mqtt():
+    load_dotenv()
+    HOST_MQTT=os.getenv('MQTT_HOST')
+    PORT_MQTT=os.getenv('MQTT_PROT')
+    USERNAME=os.getenv('MQTT_USERNAME')
+    PASSWORD=os.getenv('MQTT_PASSWORD')
+    return USERNAME, PASSWORD, HOST_MQTT, PORT_MQTT

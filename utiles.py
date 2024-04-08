@@ -17,7 +17,6 @@ Admin_Department_manager = ['Admin - Department Manager Actions']
 RaspberryPi_Admin = ['Admin - RaspberryPI Actions']
 
 
-
 def from_bson(bsion: dict, Model):
     dict_ = {k: v for k, v in bsion.items() if type(v) != ObjectId}
     id_ = bsion['_id']
