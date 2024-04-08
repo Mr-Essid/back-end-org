@@ -52,7 +52,7 @@ mqtt_config = MQTTConfig(
 @app.on_event("startup")
 async def startup_event():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(crypt_synchronize, "interval", minutes=0.5)
+    scheduler.add_job(crypt_synchronize, "interval", minutes=30)
     scheduler.start()
     Database()
 
