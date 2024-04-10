@@ -5,8 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6528f919-17b8-4747-9753-cee933799b31" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/model/Message.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/Session.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/route/session_route.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database_config/Collections.py" beforeDir="false" afterPath="$PROJECT_DIR$/database_config/Collections.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/schemes.py" beforeDir="false" afterPath="$PROJECT_DIR$/schemes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +48,7 @@
     &quot;Python.Employer.executor&quot;: &quot;Run&quot;,
     &quot;Python.History.executor&quot;: &quot;Run&quot;,
     &quot;Python.Project.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Session.executor&quot;: &quot;Run&quot;,
     &quot;Python.UserUSECASE.executor&quot;: &quot;Run&quot;,
     &quot;Python.configdb.executor&quot;: &quot;Run&quot;,
     &quot;Python.env.executor&quot;: &quot;Run&quot;,
@@ -147,7 +153,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="configdb" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Session" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="entreprise-application" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -156,11 +162,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/database_config" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/model" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/database_config/configdb.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/model/Session.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -193,11 +199,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.Session" />
         <item itemvalue="Python.History" />
         <item itemvalue="Python.Project" />
         <item itemvalue="Python.Departement" />
         <item itemvalue="Python.Employer" />
-        <item itemvalue="Python.configdb" />
       </list>
     </recent_temporary>
   </component>

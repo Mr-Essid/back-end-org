@@ -7,6 +7,8 @@ class Collections(StrEnum):
     DEPARTMENT = 'Department'
     HISTORY_DEPARTMENT = 'History_Department'
     HISTORY_SECURE = 'History_Secure'
+    SESSION = 'Session'
+    MESSAGE = 'Message'
 
     def __str__(self):
         return self.value

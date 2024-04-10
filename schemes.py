@@ -49,3 +49,18 @@ class HistoryDepartmentS(StrEnum):
 class HistorySecureS(StrEnum):
     MANAGER_ID = 'manager_id'
     DATE_TIME = 'date_time'
+
+
+class Session(StrEnum):
+    ID_ = '_id'
+    ISALIVE = 'isAlive'
+    ISONLINE = 'isOnline'
+    BEGIN_AT = 'beginAt'
+    ESTIMATED_TIME_IN_HOURS = 'estimatedTimeInHours'
+    PROJECT_ID = 'projectId'
+    DESCRIPTION = 'description'
+    CREATED_AT = 'created_at'
+    UPDATED_AT = 'updated_at'
+    D_ID = 'dIdentification'
+    D_EP = 'dEndpoint'
+    MD_ID = 'managerDeclareId'

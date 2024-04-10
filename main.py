@@ -1,11 +1,9 @@
 import time
 import os
 from datetime import datetime
-
 from fastapi import FastAPI, Request, HTTPException
 from apscheduler.schedulers.background import BackgroundScheduler
 from starlette import status
-
 from database_config.Collections import Collections
 from model.History import HistoryDepartment, HistorySecure
 from route.employer_routes import employer_route
@@ -13,6 +11,7 @@ from route.history_route import history_route
 from route.login_route import login_route
 from route.project_route import project_route
 from route.department_route import department_route
+from route.session_route import sessionRoutes
 from cryptography.fernet import Fernet
 from database_config.configdb import Database, db
 from fastapi_mqtt import FastMQTT
@@ -160,6 +159,6 @@ app.include_router(router=login_route, tags=['Login'])
 app.include_router(router=department_route, tags=['Department Actions'])
 app.include_router(router=project_route, tags=['Project Actions'])
 app.include_router(router=history_route, tags=['History Actions'])
-
+app.include_router(router=sessionRoutes, tags=['Session Actions'])
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)

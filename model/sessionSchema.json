@@ -1,0 +1,66 @@
+{
+  "properties": {
+    "isAlive": {
+      "default": false,
+      "title": "Isalive",
+      "type": "boolean"
+    },
+    "isOnline": {
+      "default": true,
+      "title": "Isonline",
+      "type": "boolean"
+    },
+    "beginAt": {
+      "format": "date-time",
+      "title": "Beginat",
+      "type": "string"
+    },
+    "estimatedTimeInHours": {
+      "title": "Estimatedtimeinhours",
+      "type": "integer"
+    },
+    "projectId": {
+      "title": "Projectid",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "dIdentification": {
+      "title": "Didentification",
+      "type": "integer"
+    },
+    "dEndpoint": {
+      "title": "Dendpoint",
+      "type": "string"
+    },
+    "managerDeclareId": {
+      "title": "Managerdeclareid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "beginAt",
+    "estimatedTimeInHours",
+    "projectId",
+    "description",
+    "created_at",
+    "updated_at",
+    "dIdentification",
+    "dEndpoint",
+    "managerDeclareId"
+  ],
+  "title": "SessionResponseBefore",
+  "type": "object"
+}
