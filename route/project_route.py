@@ -8,7 +8,8 @@ from model.Employer import Roles
 from .login_route import get_current_user
 from database_config.configdb import db
 from model.Project import Project, ProjectResponse, ProjectUpdate, ProjectFU
-from utiles import from_bson, get_filled_only, is_bson_id, Admin_only, Employer_access, Admin_Department_manager, Department_Manager_only
+from utiles import from_bson, get_filled_only, is_bson_id, Admin_only, Employer_access, Admin_Department_manager, \
+    Department_Manager_only
 
 project_route = APIRouter(prefix='/project')
 
@@ -59,17 +60,48 @@ def check_for_contributed_resources(current_user: dict, id_project_department: i
 
 # ALL BASC actions add/update/delete(soft)/read one_by_id or many
 @project_route.get('/all', tags=Admin_only)
-async def get_all_projects(page: int = 1, current_user=Depends(get_current_user)):
+async def get_all_projects(page: int = 1,is_working_on = False, current_user=Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     start = (page - 1) * 15
     len_ = 15
-    all_project_as_bson = await db.get_collection(Collections.PROJECT).find().skip(start).limit(len_).to_list(15)
+
+    query = {}
+
+    if is_working_on:
+        query.update({schemes.Project.IS_WORKING_ON: True})
+
+    # get first latest updated ones
+    all_project_as_bson = await db.get_collection(Collections.PROJECT).find(query).sort(
+        {schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(start).limit(len_).to_list(15)
 
     if len(all_project_as_bson) == 0:
         return []
     all_project_as_list = list(map(lambda item: from_bson(item, ProjectResponse), all_project_as_bson))
     return all_project_as_list
 
+
+@project_route.get('/current_employer')
+async def get_projects_of_current_user(page: int = 1, all_working_one: bool = False, current_user: dict = Depends(get_current_user)):
+    page = (page - 1) * 15
+    department_id_of_current_user = current_user.get(schemes.User.ID_DEPARTMENT)
+    query = {
+        schemes.Project.DEPARTMENT_ID: department_id_of_current_user
+    }
+
+    if all_working_one:
+        query.update({
+            schemes.Project.IS_WORKING_ON: True
+        })
+
+    sort = {
+        schemes.Project.UPDATE_AT: -1,
+        schemes.Project.CREATE_AT: -1
+    }
+
+    list_of_all_projects_of_user_sorted = await db.get_collection(Collections.PROJECT).find(query).sort(sort).skip(page).limit(15).to_list(15)
+    list_of_pydantic = list(map(lambda item: from_bson(item, ProjectResponse) , list_of_all_projects_of_user_sorted))
+
+    return list_of_pydantic
 
 @project_route.get('/{id_project}', tags=Employer_access)
 async def get_project_by_id(id_project: str, current_user: dict = Depends(get_current_user)):
@@ -125,6 +157,9 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
     return state
 
 
+
+
+
 @project_route.delete('/{id_pro}', tags=Admin_only)
 async def delete_project(id_proj: str, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
@@ -136,25 +171,36 @@ async def delete_project(id_proj: str, current_user: dict = Depends(get_current_
 
 
 # ADVANCED OPERATIONS
-@project_route.get('/department/{id_dep}', tags= Employer_access)
-async def get_project_department(id_dep: int, page: int = 1, current_user: dict = Depends(get_current_user)):
+@project_route.get('/department/{id_dep}', tags=Employer_access)
+async def get_project_department(id_dep: int, working_on_only: bool = False, page: int = 1,
+                                 current_user: dict = Depends(get_current_user)):
     check_for_contributed_resources(current_user, id_dep)
     page = (page - 1) * 15
     len_ = 15
     department_ = await db.get_collection(Collections.DEPARTMENT).find_one(
         {schemes.DepartmentS.DEPARTMENT_IDENTIFICATION: id_dep})
 
+    query = {schemes.Project.DEPARTMENT_ID: id_dep}
+
+    if working_on_only:
+        query.update({schemes.Project.IS_WORKING_ON: True})
+
     if department_ is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'No Department Found With Identifier {id_dep}'
         )
-    data_ = await db.get_collection(Collections.PROJECT).find({schemes.Project.DEPARTMENT_ID: id_dep}).skip(page).limit(
+    data_ = await db.get_collection(Collections.PROJECT).find(query).sort(
+        {schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(page).limit(
         len_).to_list(len_)
     if len(data_) == 0:
         return []
     python_data = list(map(lambda item: from_bson(item, ProjectResponse), data_))
     return python_data
+
+
+
+
 
 
 # FREQUENTLY ACTIONS : this and the function update are the same but for bandwidth and complexity raison with have separated them!
@@ -164,6 +210,7 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
     check_permission(current_user, [Roles.D_MANAGER])
     data_ = update_fa_model.model_dump(by_alias=True)
     data_ = get_filled_only(data_)
+    data_.update({schemes.Project.UPDATE_AT: datetime.datetime.now()})
     id_ = data_.pop('_id')
     is_bson_id(id_)
     project_ = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
@@ -182,4 +229,3 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
         project_after_update = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
         state.update({'new_': from_bson(project_after_update, ProjectResponse)})
     return state
-

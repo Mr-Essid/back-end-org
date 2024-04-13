@@ -114,6 +114,24 @@ class UpgradeEmployer(BaseModel):
     face_coding: list[float]
 
 
+class UpdateFaceCodingManager(BaseModel):
+    employer_id: str
+    face_coding: list[float]
+
+    @model_validator(mode='before')
+    @classmethod
+    def validate_data(cls, data: dict):
+        employer_id = data.get('employer_id')
+        if not ObjectId.is_valid(employer_id):
+            raise ValueError('Employer Id Is Not Valid')
+
+        face_encoding = data.get('face_coding')
+
+        if len(face_encoding) != 128:
+            raise ValueError('Face Coding is Not Compatible With Our Model')
+
+        return data
+
 if __name__ == '__main__':
     with open('employerSchema.json', mode='w') as json_file:
         json_ = EmployerResponse.model_json_schema()

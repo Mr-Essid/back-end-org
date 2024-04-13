@@ -46,13 +46,25 @@ async def getAllSessions(page: int = 1, current_user=Depends(get_current_user)):
 async def getSessionById(id_: str, current_user=Depends(get_current_user)):
     is_bson_id(id_)
     session_dict = await db.get_collection(Collections.SESSION).find_one({schemes.Session.ID_: ObjectId(id_)})
-    check_for_contributed_resources(current_user, session_dict[schemes.Session.D_ID])
     if session_dict is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f'No Session Found With ID {id_}'
         )
+    check_for_contributed_resources(current_user, session_dict[schemes.Session.D_ID])
     return from_bson(session_dict, SessionResponseAfter)
+
+
+@sessionRoutes.get('/sessions/current_user')
+async def get_sessions_of_current_user(page: int = 1, current_user: dict = Depends(get_current_user)):
+    id_dep_user = current_user.get(schemes.User.ID_DEPARTMENT)
+    page = (page - 1) * 15
+    sessionOfDep = await db.get_collection(Collections.SESSION).find({schemes.Session.D_ID: id_dep_user}).sort(
+        {schemes.Session.ISALIVE: -1, schemes.Session.UPDATED_AT: -1, schemes.Session.CREATED_AT: -1}).skip(
+        page).limit(
+        15).to_list(15)
+    listOfPython = list(map(lambda item: from_bson(item, SessionResponseAfter), sessionOfDep))
+    return listOfPython
 
 
 @sessionRoutes.get('/{department_id}/department')
@@ -156,22 +168,48 @@ async def activeSession(id_session: str, activation_state: SessionState, current
     session_on_question = await db.get_collection(Collections.SESSION).find_one(
         {schemes.Session.ID_: ObjectId(id_session)})
 
+    if session_on_question is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No Session With Id {id_session}'
+        )
+
+    creator_id = session_on_question.get(schemes.Session.D_ID)
+    check_for_contributed_resources(current_user, creator_id)
     if activation_state == SessionState.ACTIVE:
-        if session_on_question is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f'No Session With Id {id_session}'
-            )
-
-        creator_id = session_on_question.get(schemes.Session.MD_ID)
-        check_for_contributed_resources(current_user, creator_id)
         await db.get_collection(Collections.SESSION).update_many(
-            {schemes.Session.ISALIVE: True, schemes.Session.D_ID: session_on_question.get(schemes.Session.D_ID)}, {'$set': {schemes.Session.ISALIVE: False}}) # terminate activated session while this one is alive
-        res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)}, {'$set': {schemes.Session.ISALIVE: True}})
+            {schemes.Session.ISALIVE: True, schemes.Session.D_ID: session_on_question.get(schemes.Session.D_ID)},
+            {'$set': {schemes.Session.ISALIVE: False}})  # terminate activated session while this one is alive
 
-        return {
-            'state': 'session activated successfully'
-        } if res.modified_count > 0 else {
-            'state': 'some things went wrong'
-        }
+    query = {
+        schemes.Session.ISALIVE: True
+    }
+    if activation_state == SessionState.DIS_ACTIVE:
+        query.update({schemes.Session.ISALIVE: False})
+        query.update({schemes.Session.UPDATED_AT: datetime.datetime.now()})
 
+    res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
+                                                                  {'$set': query})
+
+    return {
+        'state': 'session activated successfully'
+    } if res.modified_count > 0 else {
+        'state': 'some things went wrong'
+    }
+
+
+@sessionRoutes.get('/last_host')
+async def get_last_hot_session_cu(current_user: dict = Depends(get_current_user)):
+    department_id = current_user.get(schemes.User.ID_DEPARTMENT)
+    sort_ = {
+        schemes.Session.ISALIVE: -1,
+        schemes.Session.UPDATED_AT: -1,
+        schemes.Session.CREATED_AT: -1,
+    }
+    latest_session_hot = await db.get_collection(Collections.SESSION).find({
+        schemes.Session.D_ID: department_id
+    }).sort(sort_).limit(1).to_list(1)
+
+    from_bson_to_pydantic = list(map(lambda item: from_bson(item, SessionResponseAfter), latest_session_hot))
+
+    return from_bson_to_pydantic[0] if len(from_bson_to_pydantic) > 0 else None

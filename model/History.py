@@ -11,7 +11,7 @@ import datetime
 import json
 
 from bson import ObjectId
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 from schemes import HistoryDepartmentS, HistorySecureS
 
@@ -34,6 +34,7 @@ class HistoryDepartment(BaseModel):
     """
         We missed this in older models, but it has been corrected in the controller.
     """
+
     @model_validator(mode='before')
     @classmethod
     def check_of_employer_id_valid_objectid(cls, data):
@@ -56,13 +57,17 @@ class HistorySecure(BaseModel):
     manager_id: str
     date_time: datetime.datetime
 
-
     @model_validator(mode='before')
     @classmethod
     def check_of_employer_id_valid_objectid(cls, data):
         if not ObjectId.is_valid(data[HistorySecureS.MANAGER_ID]):
             raise ValueError('Incorrect Manager Id, Same Thing Went Wrong')
         return data
+
+
+class CountDateHistory(BaseModel):
+    id_: str = Field(alias='_id')
+    count: int
 
 
 if __name__ == '__main__':

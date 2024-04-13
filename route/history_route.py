@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 import schemes
 from database_config.Collections import Collections
 from model.Employer import Roles
-from model.History import HistoryDepartment, HistorySecure
+from model.History import HistoryDepartment, HistorySecure, CountDateHistory
 from schemes import HistoryDepartmentS, HistorySecureS
 from database_config.configdb import db
 from utiles import from_bson, is_bson_id
@@ -39,7 +39,34 @@ def check_for_contributed_history(current_user: dict, history_id_employer: str):
         )
 
 
+@history_route.get('/departments/current_user')
+async def get_history_of_current_employer(page: int = 1, current_user: dict = Depends(get_current_user)):
+    page = (page - 1) * 15
+    id_user = current_user.get(schemes.User.ID_)
 
+    query = {
+        schemes.HistoryDepartmentS.EMPLOYER_ID: id_user
+    }
+    list_of_bson_object = await db.get_collection(Collections.HISTORY_DEPARTMENT).find(query).sort(
+        {schemes.HistoryDepartmentS.DATE_TIME: -1}
+    ).skip(page).limit(15).to_list(15)
+    list_of_pydantic_objects = list(map(lambda item: from_bson(item, HistoryDepartment), list_of_bson_object))
+    return list_of_pydantic_objects
+
+
+@history_route.get('/departments/current_user/statistic_five_days')
+async def get_history_of_employers_five_days_ago(current_user: dict = Depends(get_current_user)):
+    id_user = current_user.get(schemes.User.ID_)
+    print(id_user)
+    print(type(id_user))
+    list_of_bson_object = await db.get_collection(Collections.HISTORY_DEPARTMENT).aggregate([
+        {'$match': {HistoryDepartmentS.EMPLOYER_ID: id_user}},
+        {'$sort': {'date_time': -1}},
+        {'$group': {'_id': {'$dateToString': {'format': "%Y-%m-%d", 'date': "$date_time"}}, 'count': {'$sum': 1}}},
+    ]).to_list(5)
+
+    pydantic_list = list(map(lambda item: from_bson(item,  CountDateHistory), list_of_bson_object))
+    return pydantic_list
 
 
 @history_route.get('/department/{department_id}')
@@ -47,7 +74,7 @@ async def get_history_of_department(department_id: int, page: int = 1, current_u
     check_permission_history(current_user, [Roles.ADMIN])
     page = (page - 1) * 15
     list_with_objectId = await db.get_collection(Collections.HISTORY_DEPARTMENT).find(
-        {HistoryDepartmentS.DEPARTMENT_ID: department_id}).skip(page).limit(15).to_list(15)
+        {HistoryDepartmentS.DEPARTMENT_ID: department_id}).sort({schemes.HistoryDepartmentS.DATE_TIME: -1}).skip(page).limit(15).to_list(15)
     list_without_objectId = list(map(lambda item: from_bson(item, HistoryDepartment), list_with_objectId))
     return list_without_objectId
 
@@ -56,7 +83,7 @@ async def get_history_of_department(department_id: int, page: int = 1, current_u
 async def get_history_secure(page: int = 1, current_user: dict = Depends(get_current_user)):
     check_permission_history(current_user, [Roles.ADMIN])
     page = (page - 1) * 15
-    list_ = await db.get_collection(Collections.HISTORY_SECURE).find().skip(page).limit(15).to_list(
+    list_ = await db.get_collection(Collections.HISTORY_SECURE).find().sort({schemes.HistorySecureS.DATE_TIME: -1}).skip(page).limit(15).to_list(
         15)  # this list has ObjectId !
     list_without_object_id = list(map(lambda item: from_bson(item, HistorySecure), list_))
     return list_without_object_id
@@ -68,8 +95,8 @@ async def get_employer_history(employer_id: str, page: int = 1, current_user: di
     page = (page - 1) * 15
     is_bson_id(employer_id)
     list_with_object_id = await db.get_collection(Collections.HISTORY_DEPARTMENT).find(
-        {HistoryDepartmentS.EMPLOYER_ID: employer_id}).skip(page).limit(15).to_list(15)
-    print(list_with_object_id)
+        {HistoryDepartmentS.EMPLOYER_ID: employer_id}).sort({schemes.HistoryDepartmentS.DATE_TIME: - 1}).skip(
+        page).limit(15).to_list(15)
     list_without_object_id = list(map(lambda item: from_bson(item, HistoryDepartment), list_with_object_id))
     return list_without_object_id
 
@@ -80,6 +107,9 @@ async def get_manager_history(manager_id: str, page: int = 1, current_user: dict
     is_bson_id(manager_id)
     page = (page - 1) * 15
     list_with_object_id = await db.get_collection(Collections.HISTORY_SECURE).find(
-        {HistorySecureS.MANAGER_ID: manager_id}).skip(page).limit(15).to_list(15)
+        {HistorySecureS.MANAGER_ID: manager_id}).sort({schemes.HistorySecureS.DATE_TIME: -1}).skip(page).limit(
+        15).to_list(15)
     list_without_object_id = list(map(lambda item: from_bson(item, HistorySecure), list_with_object_id))
     return list_without_object_id
+
+# history of current_user

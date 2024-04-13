@@ -17,6 +17,7 @@ from database_config.configdb import Database, db
 from fastapi_mqtt import FastMQTT
 from fastapi_mqtt.config import MQTTConfig
 from env import load_mqtt
+from SocketIOServer import sio, socket_io_app
 import uvicorn
 import aiofiles
 
@@ -70,6 +71,7 @@ def crypt_synchronize():
     new_key = os.urandom(32).hex()
     RASPBERRYPI_KEY = new_key  # this is our key
     # prepare it to send over mqtt crypt it
+    print(new_key)
     with open('key.txt', 'w') as file:
         file.write(new_key)
 
@@ -160,5 +162,8 @@ app.include_router(router=department_route, tags=['Department Actions'])
 app.include_router(router=project_route, tags=['Project Actions'])
 app.include_router(router=history_route, tags=['History Actions'])
 app.include_router(router=sessionRoutes, tags=['Session Actions'])
+app.mount('/', socket_io_app)
+
+
 if __name__ == '__main__':
     uvicorn.run('main:app', reload=True)

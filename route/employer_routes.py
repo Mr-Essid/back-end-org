@@ -11,7 +11,7 @@ from starlette.requests import Request
 import schemes
 from database_config.configdb import db
 from model.Employer import EmployerRequest, EmployerResponse, EmployerUpdate, UpdatePassword, EmployerUpdatePrivate, \
-    Roles, UpgradeEmployer
+    Roles, UpgradeEmployer, UpdateFaceCodingManager
 from bson.objectid import ObjectId
 from database_config.Collections import Collections
 from schemes import User
@@ -40,7 +40,6 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True,
     TEMPLATE_FOLDER='./email_models'
 )
-
 
 
 @employer_route.get('/v/email-verify')
@@ -121,6 +120,27 @@ async def forget_password(email: str):
     }
 
 
+@employer_route.get('/departments/managers/key')
+async def employers_get_department_managers():
+    """
+    :key:\n
+        Access only by RaspberryPI
+    :return:
+    will be like\n
+    [{\n
+    department:\n
+        Department\n
+    manager:\n
+        EmployerResponse\n
+    }, ...]
+    """
+    bson_all_managers = await db.get_collection(Collections.USER).find(
+        {'$or': [{schemes.User.ROLE: Roles.D_MANAGER}, {schemes.User.ROLE: Roles.ADMIN}]}).to_list(15)
+
+    json_all_manager = list(map(lambda item: from_bson(item, EmployerResponse), bson_all_managers))
+    return json_all_manager
+
+
 @employer_route.get('/department/managers', tags=RaspberryPi_Admin)
 async def employers_get_department_managers(current_user=Depends(get_current_user)):
     """
@@ -167,6 +187,12 @@ async def employers_of_department(id_department: int, page: int = 1, current_use
         return []
     list_python_ = list(map(lambda item: from_bson(item, EmployerResponse), list_employers_))
     return list_python_
+
+
+@employer_route.get('/current')
+async def get_current(current_user: dict = Depends(get_current_user)):
+    user_as_pydantic = from_bson(current_user, EmployerResponse)
+    return user_as_pydantic
 
 
 @employer_route.get('/{id_user}', tags=Employer_access)
@@ -288,6 +314,25 @@ async def upgrade_(data: UpgradeEmployer):
     return {
         'status': 'employer updated successfully'
     }
+
+
+@employer_route.put('/face_coding_manager')
+async def update_face_coding_manager(updateFaceRequest: UpdateFaceCodingManager,
+                                     current_user: dict = Depends(get_current_user)):
+    check_permission(current_user, [Roles.ADMIN])
+    manager_id = updateFaceRequest.employer_id
+    face_coding = updateFaceRequest.face_coding
+    res = await db.get_collection(Collections.USER).update_one(
+        {User.ID_: ObjectId(manager_id), '$or': [{User.ROLE: Roles.D_MANAGER}, {User.ROLE: Roles.ADMIN}]},
+        {'$set': {User.FACE_CODDING: face_coding}})
+
+    if res.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Same Thing Went Wrong"
+        )
+
+    return {'state': 'manager updated successfully'}
 
 
 @employer_route.delete('/{id_}', tags=Admin_only)
