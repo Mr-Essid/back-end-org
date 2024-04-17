@@ -60,7 +60,7 @@ def check_for_contributed_resources(current_user: dict, id_project_department: i
 
 # ALL BASC actions add/update/delete(soft)/read one_by_id or many
 @project_route.get('/all', tags=Admin_only)
-async def get_all_projects(page: int = 1,is_working_on = False, current_user=Depends(get_current_user)):
+async def get_all_projects(page: int = 1, is_working_on=False, current_user=Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     start = (page - 1) * 15
     len_ = 15
@@ -72,7 +72,7 @@ async def get_all_projects(page: int = 1,is_working_on = False, current_user=Dep
 
     # get first latest updated ones
     all_project_as_bson = await db.get_collection(Collections.PROJECT).find(query).sort(
-        {schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(start).limit(len_).to_list(15)
+        {schemes.Project.END_AT: 1, schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(start).limit(len_).to_list(15)
 
     if len(all_project_as_bson) == 0:
         return []
@@ -81,7 +81,8 @@ async def get_all_projects(page: int = 1,is_working_on = False, current_user=Dep
 
 
 @project_route.get('/current_employer')
-async def get_projects_of_current_user(page: int = 1, all_working_one: bool = False, current_user: dict = Depends(get_current_user)):
+async def get_projects_of_current_user(page: int = 1, all_working_one: bool = False,
+                                       current_user: dict = Depends(get_current_user)):
     page = (page - 1) * 15
     department_id_of_current_user = current_user.get(schemes.User.ID_DEPARTMENT)
     query = {
@@ -94,14 +95,17 @@ async def get_projects_of_current_user(page: int = 1, all_working_one: bool = Fa
         })
 
     sort = {
+        schemes.Project.END_AT: 1,
         schemes.Project.UPDATE_AT: -1,
         schemes.Project.CREATE_AT: -1
     }
 
-    list_of_all_projects_of_user_sorted = await db.get_collection(Collections.PROJECT).find(query).sort(sort).skip(page).limit(15).to_list(15)
-    list_of_pydantic = list(map(lambda item: from_bson(item, ProjectResponse) , list_of_all_projects_of_user_sorted))
+    list_of_all_projects_of_user_sorted = await db.get_collection(Collections.PROJECT).find(query).sort(sort).skip(
+        page).limit(15).to_list(15)
+    list_of_pydantic = list(map(lambda item: from_bson(item, ProjectResponse), list_of_all_projects_of_user_sorted))
 
     return list_of_pydantic
+
 
 @project_route.get('/{id_project}', tags=Employer_access)
 async def get_project_by_id(id_project: str, current_user: dict = Depends(get_current_user)):
@@ -158,8 +162,6 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
 
 
 
-
-
 @project_route.delete('/{id_pro}', tags=Admin_only)
 async def delete_project(id_proj: str, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
@@ -191,16 +193,12 @@ async def get_project_department(id_dep: int, working_on_only: bool = False, pag
             detail=f'No Department Found With Identifier {id_dep}'
         )
     data_ = await db.get_collection(Collections.PROJECT).find(query).sort(
-        {schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(page).limit(
+        {schemes.Project.END_AT: 1, schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(page).limit(
         len_).to_list(len_)
     if len(data_) == 0:
         return []
     python_data = list(map(lambda item: from_bson(item, ProjectResponse), data_))
     return python_data
-
-
-
-
 
 
 # FREQUENTLY ACTIONS : this and the function update are the same but for bandwidth and complexity raison with have separated them!

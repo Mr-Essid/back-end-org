@@ -84,7 +84,7 @@ async def getSessionsOfProject(project_id: str, page: int = 1, current_user=Depe
     is_bson_id(project_id)
     page = (page - 1) * 15
 
-    project_in_question = await db.get_collection(Collections.PROJECT).find_one({schemes.Project: project_id})
+    project_in_question = await db.get_collection(Collections.PROJECT).find_one({schemes.Project.ID_: ObjectId(project_id)})
 
     if project_in_question is None:
         raise HTTPException(
@@ -95,7 +95,7 @@ async def getSessionsOfProject(project_id: str, page: int = 1, current_user=Depe
     check_for_contributed_resources(current_user, project_in_question[schemes.Project.DEPARTMENT_ID])
 
     sessionOfProj = await db.get_collection(Collections.SESSION).find({schemes.Session.PROJECT_ID: project_id}).skip(
-        page).limit(15)
+        page).limit(15).to_list(15)
 
     listPython = list(map(lambda item: from_bson(item, SessionResponseAfter), sessionOfProj))
     return listPython

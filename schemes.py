@@ -24,6 +24,7 @@ class DepartmentS(StrEnum):
 
 
 class Project(StrEnum):
+    ID_ = '_id'
     PROJECT_IDENTIFIER = 'id_project'
     PROJECT_DESCRIPTION = 'description'
     CLIENT_BRAND = 'client_brand'
