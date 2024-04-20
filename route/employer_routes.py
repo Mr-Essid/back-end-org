@@ -233,8 +233,14 @@ async def add_employer(user: EmployerRequest, request: Request, current_user=Dep
         raise access_forbidden
 
     user = user.model_dump(by_alias=True)
+    if user.get(schemes.User.ID_DEPARTMENT) not in [1, 2, 3]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Not Department Exists With Id {user.get(schemes.User.ID_DEPARTMENT)}"
+        )
     user.update({'create_at': datetime.datetime.today()})
     user.update({'update_at': datetime.datetime.today()})
+
     user[User.PASSWORD] = crypt_pass(user[User.PASSWORD])
     try:
         user_id = await db.get_collection(Collections.USER).insert_one(user)

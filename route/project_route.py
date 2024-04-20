@@ -72,7 +72,8 @@ async def get_all_projects(page: int = 1, is_working_on=False, current_user=Depe
 
     # get first latest updated ones
     all_project_as_bson = await db.get_collection(Collections.PROJECT).find(query).sort(
-        {schemes.Project.END_AT: 1, schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(start).limit(len_).to_list(15)
+        {schemes.Project.END_AT: 1, schemes.Project.UPDATE_AT: -1, schemes.Project.CREATE_AT: -1}).skip(start).limit(
+        len_).to_list(15)
 
     if len(all_project_as_bson) == 0:
         return []
@@ -127,6 +128,11 @@ async def get_project_by_id(id_project: str, current_user: dict = Depends(get_cu
 async def add_project(project_: Project, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     json_format = project_.model_dump()
+    if project_.department_identification not in [1, 2, 3]:  # currently those all department ids
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Bad Department id"
+        )
     json_format.update({'create_at: ': datetime.datetime.now()})
     json_format.update({'update_at': datetime.datetime.now()})
     id_ = await db.get_collection(Collections.PROJECT).insert_one(json_format)
@@ -159,7 +165,6 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
         project_after_update = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
         state.update({'new_': from_bson(project_after_update, ProjectResponse)})
     return state
-
 
 
 @project_route.delete('/{id_pro}', tags=Admin_only)

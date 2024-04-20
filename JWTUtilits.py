@@ -6,7 +6,7 @@ from env import load_env_jwt
 
 SECRET_KEY = load_env_jwt()
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):

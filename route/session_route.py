@@ -15,7 +15,8 @@ sessionRoutes = APIRouter(prefix='/session')
 
 
 def check_permission(current_user: dict, target_roles: list[Roles]):
-    if not current_user[schemes.User.ROLE] in target_roles:
+    print(current_user.get(schemes.User.ROLE) not in target_roles)
+    if current_user.get(schemes.User.ROLE) not in target_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='request not permitted'
@@ -26,6 +27,9 @@ def check_for_contributed_resources(current_user: dict, id_project_department: i
     if current_user[schemes.User.ROLE] == Roles.ADMIN:
         return
 
+    print(current_user.get(schemes.User.ROLE))
+    print(current_user.get(schemes.User.ID_DEPARTMENT))
+    print(id_project_department)
     if current_user[schemes.User.ID_DEPARTMENT] != id_project_department:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -84,7 +88,8 @@ async def getSessionsOfProject(project_id: str, page: int = 1, current_user=Depe
     is_bson_id(project_id)
     page = (page - 1) * 15
 
-    project_in_question = await db.get_collection(Collections.PROJECT).find_one({schemes.Project.ID_: ObjectId(project_id)})
+    project_in_question = await db.get_collection(Collections.PROJECT).find_one(
+        {schemes.Project.ID_: ObjectId(project_id)})
 
     if project_in_question is None:
         raise HTTPException(
@@ -125,16 +130,25 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
     dict_of_session.update({schemes.Session.MD_ID: current_user[schemes.User.ID_]})
     dict_of_session.update({schemes.Session.CREATED_AT: created_at})
     dict_of_session.update({schemes.Session.UPDATED_AT: updated_at})
+
+    if not dict_of_session.get(schemes.Session.ISONLINE):
+        dict_of_session.update({schemes.Session.ISALIVE: False})
+
+    if dict_of_session.get(schemes.Session.ISALIVE):
+        await db.get_collection(Collections.SESSION).update_many({schemes.Session.D_ID: department_id},
+                                                                 {'$set': {
+                                                                     schemes.Session.ISALIVE: False}})  # if we have an active session we will get off all of them
+
     id_inserted = await db.get_collection(Collections.SESSION).insert_one(dict_of_session)
     new_session_data = await db.get_collection(Collections.SESSION).find_one(
         {schemes.Session.ID_: id_inserted.inserted_id})
+
     return from_bson(new_session_data, SessionResponseAfter)
 
 
 @sessionRoutes.put('/')
 async def updateSession(session_to_update: SessionUpdate, current_user=Depends(get_current_user)):
     check_permission(current_user, [Roles.D_MANAGER, Roles.ADMIN])
-
     session_: dict = await db.get_collection(Collections.SESSION).find_one(
         {schemes.Session.ID_: ObjectId(session_to_update.id_)})
     if session_ is None:
@@ -142,7 +156,7 @@ async def updateSession(session_to_update: SessionUpdate, current_user=Depends(g
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"session not found with id {session_to_update.id_}"
         )
-    creator_id = session_.get(schemes.Session.MD_ID)
+    creator_id = session_.get(schemes.Session.D_ID)
     check_for_contributed_resources(current_user, creator_id)
     session_dict = session_to_update.model_dump(by_alias=True)
     id_session = session_dict.pop(schemes.Session.ID_)
@@ -209,7 +223,6 @@ async def get_last_hot_session_cu(current_user: dict = Depends(get_current_user)
     latest_session_hot = await db.get_collection(Collections.SESSION).find({
         schemes.Session.D_ID: department_id
     }).sort(sort_).limit(1).to_list(1)
-
     from_bson_to_pydantic = list(map(lambda item: from_bson(item, SessionResponseAfter), latest_session_hot))
 
     return from_bson_to_pydantic[0] if len(from_bson_to_pydantic) > 0 else None
