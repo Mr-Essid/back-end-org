@@ -123,8 +123,6 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
             detail="you have error in your input check your begin at time or eTime at least one hour"
         )
 
-
-
     department_id = current_user.get(schemes.User.ID_DEPARTMENT)
     department_ep = 'NC'  # Not Connected XD
     updated_at = datetime.datetime.now()

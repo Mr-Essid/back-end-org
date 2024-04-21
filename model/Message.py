@@ -19,21 +19,7 @@ class Message(BaseModel):
     session_id: str
     date_time: datetime.datetime
 
-    @model_validator(mode="before")
-    @classmethod
-    def validator(cls, data: dict):
-        employer_id = data.get('employer_id')
-        session_id = data.get('session_id')
 
-        if not ObjectId.is_valid(employer_id):
-            raise ValueError(
-                "Employer Id is Invalid"
-            )
-
-        if not ObjectId.is_valid(session_id):
-            raise ValueError(
-                "Session Id is Invalid"
-            )
 
 
 class MessageResponse(Message):

@@ -9,7 +9,6 @@ from socketio.exceptions import ConnectionRefusedError
 
 import JWTUtilits
 import schemes
-from JWTUtilits import decodeAccessToken
 from database_config.Collections import Collections
 from database_config.configdb import db
 from model.Message import Message, MessageType
@@ -35,18 +34,20 @@ socket_io_app = ASGIApp(
 
 async def save_message(message_content: str, type_: MessageType, employer_id: str, session_id: str):
     current_date = datetime.datetime.now()
-    # message = Message(employer_id=employer_id, session_id=session_id, date_time=current_date, type_=type_,
-    #                   message_content=message_content)
 
+    print(employer_id)
     message = {
-        'employer_id': employer_id,
-        'session_id': session_id,
-        'date_time': current_date,
-        'type_': type_,
-        'message_content': message_content
+        schemes.Message.EMPLOYER_ID: employer_id,
+        schemes.Message.SESSION_ID: session_id,
+        schemes.Message.DATE_TIME: current_date,
+        schemes.Message.TYPE: type_,
+        schemes.Message.MESSAGE_CONTENT: message_content
     }
 
-    res = await db.get_collection(Collections.MESSAGE).insert_one(message)
+    message = Message(message_content=message_content, type_=type_, employer_id=employer_id, session_id=session_id,
+                      date_time=current_date)
+
+    res = await db.get_collection(Collections.MESSAGE).insert_one(message.__dict__)
 
 
 class Department(AsyncNamespace):
@@ -100,11 +101,8 @@ class Department(AsyncNamespace):
             user_info.update({"session_id": session_id})
 
             await self.save_session(sid, user_info)
-            print(username.split("@")[0])
-            await self.emit("join", f"{user_info.get('username')} join the session")
+            await self.emit("join", [username.split("@")[0]])
             # save message to database
-            print(user_info)
-            print(MessageType.JOIN)
 
             await save_message("user join", MessageType.JOIN, user_info.get('user_id'), user_info.get('session_id'))
 
@@ -123,13 +121,12 @@ class Department(AsyncNamespace):
 
     async def on_message(self, sid, data):
         print("message came".center(50, "-"))
-        print(data)
         data_user: dict = await self.get_session(sid)
         username = data_user.get('username')
-        user_id = data_user.get('id_user')
+        user_id = data_user.get('user_id')
         session_id = data_user.get('session_id')
 
-        await self.emit('response', [username, data])
+        await self.emit('response', [user_id, username, data])
         await save_message(data, MessageType.MESSAGE, user_id, session_id)
         return 'OK', 200
 

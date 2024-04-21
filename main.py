@@ -9,6 +9,7 @@ from model.History import HistoryDepartment, HistorySecure
 from route.employer_routes import employer_route
 from route.history_route import history_route
 from route.login_route import login_route
+from route.message_route import messageRoute
 from route.project_route import project_route
 from route.department_route import department_route
 from route.session_route import sessionRoutes
@@ -161,6 +162,7 @@ app.include_router(router=department_route, tags=['Department Actions'])
 app.include_router(router=project_route, tags=['Project Actions'])
 app.include_router(router=history_route, tags=['History Actions'])
 app.include_router(router=sessionRoutes, tags=['Session Actions'])
+app.include_router(router=messageRoute, tags=['Message Actions'])
 app.mount('/', socket_io_app)
 
 

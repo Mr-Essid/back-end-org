@@ -5,20 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6528f919-17b8-4747-9753-cee933799b31" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/route/message_route.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SocketIOServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/SocketIOServer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/key.txt" beforeDir="false" afterPath="$PROJECT_DIR$/key.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/Employer.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Employer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/History.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/History.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/Message.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Message.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/Project.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Project.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/Session.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Session.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/projectJsonSchema.json" beforeDir="false" afterPath="$PROJECT_DIR$/model/projectJsonSchema.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/sessionSchema.json" beforeDir="false" afterPath="$PROJECT_DIR$/model/sessionSchema.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/route/message_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/message_route.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route/session_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/session_route.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/schemes.py" beforeDir="false" afterPath="$PROJECT_DIR$/schemes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
