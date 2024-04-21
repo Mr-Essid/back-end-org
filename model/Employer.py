@@ -24,7 +24,7 @@ PyObjectId = Annotated[
     Union[str, ObjectId],
     AfterValidator(validate_object_id),
     PlainSerializer(lambda x: str(x), return_type=str),
-    WithJsonSchema({"type": "string"}, mode="serialization"),
+    WithJsonSchema({"type_": "string"}, mode="serialization"),
 ]
 
 

@@ -27,6 +27,22 @@
       "title": "Description",
       "type": "string"
     },
+    "dIdentification": {
+      "title": "Didentification",
+      "type": "integer"
+    },
+    "dEndpoint": {
+      "title": "Dendpoint",
+      "type": "string"
+    },
+    "isDone": {
+      "title": "Isdone",
+      "type": "boolean"
+    },
+    "managerDeclareId": {
+      "title": "Managerdeclareid",
+      "type": "string"
+    },
     "created_at": {
       "format": "date-time",
       "title": "Created At",
@@ -36,18 +52,6 @@
       "format": "date-time",
       "title": "Updated At",
       "type": "string"
-    },
-    "dIdentification": {
-      "title": "Didentification",
-      "type": "integer"
-    },
-    "dEndpoint": {
-      "title": "Dendpoint",
-      "type": "string"
-    },
-    "managerDeclareId": {
-      "title": "Managerdeclareid",
-      "type": "string"
     }
   },
   "required": [
@@ -55,11 +59,12 @@
     "estimatedTimeInHours",
     "projectId",
     "description",
-    "created_at",
-    "updated_at",
     "dIdentification",
     "dEndpoint",
-    "managerDeclareId"
+    "isDone",
+    "managerDeclareId",
+    "created_at",
+    "updated_at"
   ],
   "title": "SessionResponseBefore",
   "type": "object"

@@ -11,6 +11,11 @@
     }
   },
   "properties": {
+    "label": {
+      "maxLength": 64,
+      "title": "Label",
+      "type": "string"
+    },
     "description": {
       "title": "Description",
       "type": "string"
@@ -83,6 +88,7 @@
     }
   },
   "required": [
+    "label",
     "description",
     "client_brand",
     "client_location",

@@ -54,7 +54,6 @@ async def startup_event():
     scheduler.add_job(crypt_synchronize, "interval", minutes=30)
     scheduler.start()
     Database()
-
     print('all configurations are done')
 
 
@@ -77,7 +76,7 @@ def crypt_synchronize():
 
     fernet_en_key = CRYPTO_KEY_RASPBERRYPI.encode()
     data_encrypted = encrypt_api_key(RASPBERRYPI_KEY, fernet_en_key)
-    fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
+    # fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
     print('job done')
 
 
@@ -126,20 +125,20 @@ async def add_secure_history(history_secure_model: HistorySecure, request: Reque
     return {'status': f'history inserted {str(inserted_id.inserted_id)}'}
 
 
-fast_mqtt = FastMQTT(config=mqtt_config)
-fast_mqtt.init_app(app)
+# fast_mqtt = FastMQTT(config=mqtt_config)
+# fast_mqtt.init_app(app)
 
 
-@fast_mqtt.on_connect()
-def connect(client, flags, rc, properties):
-    fast_mqtt.client.subscribe("/mqtt")
-    print("Connected: ", client, flags, rc, properties)
-
-
-@fast_mqtt.on_message()
-async def message(client, topic, payload, qof, properties):
-    pass  # here we don't need any received message and thanks, please don't ask me why I put it because I love it ok !!!
-
+# @fast_mqtt.on_connect()
+# def connect(client, flags, rc, properties):
+#     fast_mqtt.client.subscribe("/mqtt")
+#     print("Connected: ", client, flags, rc, properties)
+#
+#
+# @fast_mqtt.on_message()
+# async def message(client, topic, payload, qof, properties):
+#     pass  # here we don't need any received message and thanks, please don't ask me why I put it because I love it ok !!!
+#
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -166,4 +165,4 @@ app.mount('/', socket_io_app)
 
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8008)

@@ -30,6 +30,7 @@ class SessionResponseBefore(SessionRequest):
     dIdentification: int
     dEndpoint: str
     managerDeclareId: str
+    isDone: bool = False
     created_at: datetime.datetime
     updated_at: datetime.datetime
 

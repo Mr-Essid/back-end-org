@@ -28,7 +28,6 @@ from schemes import HistoryDepartmentS, HistorySecureS
 
 class HistoryDepartment(BaseModel):
     employer_id: str  # will be our ObjectId
-    department_id: int  # this is not a fault we know all that we can access this man from the employer but this is optimization that will help us improve our fetch by department, thank you!
     date_time: datetime.datetime | None = None
 
     """

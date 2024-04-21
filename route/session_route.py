@@ -27,9 +27,6 @@ def check_for_contributed_resources(current_user: dict, id_project_department: i
     if current_user[schemes.User.ROLE] == Roles.ADMIN:
         return
 
-    print(current_user.get(schemes.User.ROLE))
-    print(current_user.get(schemes.User.ID_DEPARTMENT))
-    print(id_project_department)
     if current_user[schemes.User.ID_DEPARTMENT] != id_project_department:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -98,8 +95,13 @@ async def getSessionsOfProject(project_id: str, page: int = 1, current_user=Depe
         )
 
     check_for_contributed_resources(current_user, project_in_question[schemes.Project.DEPARTMENT_ID])
-
-    sessionOfProj = await db.get_collection(Collections.SESSION).find({schemes.Session.PROJECT_ID: project_id}).skip(
+    sort = {
+        schemes.Session.ISALIVE: -1,
+        schemes.Session.UPDATED_AT: -1,
+        schemes.Session.CREATED_AT: -1
+    }
+    sessionOfProj = await db.get_collection(Collections.SESSION).find({schemes.Session.PROJECT_ID: project_id}).sort(
+        sort).skip(
         page).limit(15).to_list(15)
 
     listPython = list(map(lambda item: from_bson(item, SessionResponseAfter), sessionOfProj))
@@ -120,6 +122,9 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="you have error in your input check your begin at time or eTime at least one hour"
         )
+
+
+
     department_id = current_user.get(schemes.User.ID_DEPARTMENT)
     department_ep = 'NC'  # Not Connected XD
     updated_at = datetime.datetime.now()
@@ -127,14 +132,19 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
     dict_of_session = sessionRequest.model_dump(by_alias=True)
     dict_of_session.update({schemes.Session.D_ID: department_id})
     dict_of_session.update({schemes.Session.D_EP: department_ep})
+    dict_of_session.update({schemes.Session.IS_DONE: False})
     dict_of_session.update({schemes.Session.MD_ID: current_user[schemes.User.ID_]})
     dict_of_session.update({schemes.Session.CREATED_AT: created_at})
     dict_of_session.update({schemes.Session.UPDATED_AT: updated_at})
+
+    if begin_at.split("T")[0] != current_date.split("T")[0]:
+        dict_of_session.update({schemes.Session.ISALIVE: False})
 
     if not dict_of_session.get(schemes.Session.ISONLINE):
         dict_of_session.update({schemes.Session.ISALIVE: False})
 
     if dict_of_session.get(schemes.Session.ISALIVE):
+        dict_of_session.update({schemes.Session.IS_DONE: True})
         await db.get_collection(Collections.SESSION).update_many({schemes.Session.D_ID: department_id},
                                                                  {'$set': {
                                                                      schemes.Session.ISALIVE: False}})  # if we have an active session we will get off all of them
@@ -196,7 +206,8 @@ async def activeSession(id_session: str, activation_state: SessionState, current
             {'$set': {schemes.Session.ISALIVE: False}})  # terminate activated session while this one is alive
 
     query = {
-        schemes.Session.ISALIVE: True
+        schemes.Session.ISALIVE: True,
+        schemes.Session.IS_DONE: True
     }
     if activation_state == SessionState.DIS_ACTIVE:
         query.update({schemes.Session.ISALIVE: False})

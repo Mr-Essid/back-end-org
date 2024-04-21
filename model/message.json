@@ -1,0 +1,45 @@
+{
+  "$defs": {
+    "MessageType": {
+      "enum": [
+        "join",
+        "message",
+        "disconnect",
+        "decision"
+      ],
+      "title": "MessageType",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "message_content": {
+      "title": "Message Content",
+      "type": "string"
+    },
+    "type_": {
+      "$ref": "#/$defs/MessageType"
+    },
+    "employer_id": {
+      "title": "Employer Id",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "date_time": {
+      "format": "date-time",
+      "title": "Date Time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "message_content",
+    "type_",
+    "employer_id",
+    "session_id",
+    "date_time"
+  ],
+  "title": "Message",
+  "type": "object"
+}

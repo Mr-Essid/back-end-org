@@ -25,6 +25,7 @@ class DepartmentS(StrEnum):
 
 class Project(StrEnum):
     ID_ = '_id'
+    LABEL = 'label'
     PROJECT_IDENTIFIER = 'id_project'
     PROJECT_DESCRIPTION = 'description'
     CLIENT_BRAND = 'client_brand'
@@ -57,6 +58,7 @@ class Session(StrEnum):
     ISALIVE = 'isAlive'
     ISONLINE = 'isOnline'
     BEGIN_AT = 'beginAt'
+    IS_DONE = 'isDone'
     ESTIMATED_TIME_IN_HOURS = 'estimatedTimeInHours'
     PROJECT_ID = 'projectId'
     DESCRIPTION = 'description'
@@ -65,3 +67,12 @@ class Session(StrEnum):
     D_ID = 'dIdentification'
     D_EP = 'dEndpoint'
     MD_ID = 'managerDeclareId'
+
+
+class Message(StrEnum):
+    ID_ = '_id'
+    MESSAGE_CONTENT = 'message_content'
+    TYPE = 'type_'
+    EMPLOYER_ID = 'employer_id'
+    SESSION_ID = 'session_id'
+    DATE_TIME = 'date_time'
