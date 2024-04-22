@@ -1,6 +1,7 @@
 import datetime
 from enum import StrEnum
 
+import pytz
 from bson import ObjectId
 from jose import JWTError
 from jose.exceptions import JWTClaimsError, ExpiredSignatureError
@@ -33,7 +34,7 @@ socket_io_app = ASGIApp(
 
 
 async def save_message(username: str, message_content: str, type_: MessageType, employer_id: str, session_id: str):
-    current_date = datetime.datetime.now()
+    current_date = datetime.datetime.now(tz=pytz.timezone("Africa/Tunis"))
 
     message = Message(message_content=message_content, type_=type_, employer_id=employer_id, session_id=session_id,
                       date_time=current_date, employer_name=username)

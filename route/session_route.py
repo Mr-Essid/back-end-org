@@ -108,50 +108,6 @@ async def getSessionsOfProject(project_id: str, page: int = 1, current_user=Depe
     return listPython
 
 
-@sessionRoutes.post('/')
-async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_current_user)):
-    check_permission(current_user, [Roles.D_MANAGER, Roles.ADMIN])
-    date_format = '%Y-%m-%dT%H:%M:%S'
-    print(sessionRequest.model_dump(by_alias=True))
-    begin_at = sessionRequest.beginAt.strftime(date_format)  # date of session
-    estimated_time = sessionRequest.estimatedTimeInHours
-    current_date = datetime.datetime.now().strftime(date_format)
-
-    if begin_at < current_date or estimated_time < 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="you have error in your input check your begin at time or eTime at least one hour"
-        )
-
-    department_id = current_user.get(schemes.User.ID_DEPARTMENT)
-    department_ep = 'NC'  # Not Connected XD
-    updated_at = datetime.datetime.now()
-    created_at = datetime.datetime.now()
-    dict_of_session = sessionRequest.model_dump(by_alias=True)
-    dict_of_session.update({schemes.Session.D_ID: department_id})
-    dict_of_session.update({schemes.Session.D_EP: department_ep})
-    dict_of_session.update({schemes.Session.IS_DONE: False})
-    dict_of_session.update({schemes.Session.MD_ID: current_user[schemes.User.ID_]})
-    dict_of_session.update({schemes.Session.CREATED_AT: created_at})
-    dict_of_session.update({schemes.Session.UPDATED_AT: updated_at})
-
-    if begin_at.split("T")[0] != current_date.split("T")[0]:
-        dict_of_session.update({schemes.Session.ISALIVE: False})
-
-    if not dict_of_session.get(schemes.Session.ISONLINE):
-        dict_of_session.update({schemes.Session.ISALIVE: False})
-
-    if dict_of_session.get(schemes.Session.ISALIVE):
-        dict_of_session.update({schemes.Session.IS_DONE: True})
-        await db.get_collection(Collections.SESSION).update_many({schemes.Session.D_ID: department_id},
-                                                                 {'$set': {
-                                                                     schemes.Session.ISALIVE: False}})  # if we have an active session we will get off all of them
-
-    id_inserted = await db.get_collection(Collections.SESSION).insert_one(dict_of_session)
-    new_session_data = await db.get_collection(Collections.SESSION).find_one(
-        {schemes.Session.ID_: id_inserted.inserted_id})
-
-    return from_bson(new_session_data, SessionResponseAfter)
 
 
 @sessionRoutes.put('/')
@@ -184,41 +140,6 @@ async def updateSession(session_to_update: SessionUpdate, current_user=Depends(g
     }
 
 
-@sessionRoutes.put('/active/{id_session}')
-async def activeSession(id_session: str, activation_state: SessionState, current_user=Depends(get_current_user)):
-    is_bson_id(id_session)
-    session_on_question = await db.get_collection(Collections.SESSION).find_one(
-        {schemes.Session.ID_: ObjectId(id_session)})
-
-    if session_on_question is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'No Session With Id {id_session}'
-        )
-
-    creator_id = session_on_question.get(schemes.Session.D_ID)
-    check_for_contributed_resources(current_user, creator_id)
-    if activation_state == SessionState.ACTIVE:
-        await db.get_collection(Collections.SESSION).update_many(
-            {schemes.Session.ISALIVE: True, schemes.Session.D_ID: session_on_question.get(schemes.Session.D_ID)},
-            {'$set': {schemes.Session.ISALIVE: False}})  # terminate activated session while this one is alive
-
-    query = {
-        schemes.Session.ISALIVE: True,
-        schemes.Session.IS_DONE: True
-    }
-    if activation_state == SessionState.DIS_ACTIVE:
-        query.update({schemes.Session.ISALIVE: False})
-        query.update({schemes.Session.UPDATED_AT: datetime.datetime.now()})
-
-    res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
-                                                                  {'$set': query})
-
-    return {
-        'state': 'session activated successfully'
-    } if res.modified_count > 0 else {
-        'state': 'some things went wrong'
-    }
 
 
 @sessionRoutes.get('/last_host')

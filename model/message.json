@@ -27,6 +27,10 @@
       "title": "Session Id",
       "type": "string"
     },
+    "employer_name": {
+      "title": "Employer Name",
+      "type": "string"
+    },
     "date_time": {
       "format": "date-time",
       "title": "Date Time",
@@ -38,6 +42,7 @@
     "type_",
     "employer_id",
     "session_id",
+    "employer_name",
     "date_time"
   ],
   "title": "Message",
