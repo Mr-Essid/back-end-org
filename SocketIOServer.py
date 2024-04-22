@@ -36,7 +36,7 @@ async def save_message(username: str, message_content: str, type_: MessageType, 
     current_date = datetime.datetime.now()
 
     message = Message(message_content=message_content, type_=type_, employer_id=employer_id, session_id=session_id,
-                      date_time=current_date, username=username)
+                      date_time=current_date, employer_name=username)
 
     res = await db.get_collection(Collections.MESSAGE).insert_one(message.__dict__)
 
