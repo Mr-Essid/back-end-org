@@ -8,10 +8,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SocketIOServer.py" beforeDir="false" afterPath="$PROJECT_DIR$/SocketIOServer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/key.txt" beforeDir="false" afterPath="$PROJECT_DIR$/key.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model/Message.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/Message.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route/message_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/message_route.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/route/session_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/session_route.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

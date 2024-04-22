@@ -23,7 +23,7 @@ async def get_message_of_session(session_id: str, current_user: dict = Depends(g
             detail=f"There is No Session With Id {session_id}"
         )
 
-    if schemes.Session.D_ID != current_user.get(schemes.User.ID_DEPARTMENT) and current_user.get(
+    if session.get(schemes.Session.D_ID) != current_user.get(schemes.User.ID_DEPARTMENT) and current_user.get(
             schemes.User.ROLE) != Roles.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

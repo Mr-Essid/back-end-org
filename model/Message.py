@@ -17,9 +17,8 @@ class Message(BaseModel):
     type_: MessageType
     employer_id: str
     session_id: str
+    employer_name: str  # we know that we can query the employer name from the id of it but but you have to pay attention here cause if you will display the message you have to query the user table to get the name !! it's fucking fault
     date_time: datetime.datetime
-
-
 
 
 class MessageResponse(Message):
@@ -30,6 +29,3 @@ if __name__ == '__main__':
     with open('./message.json', 'w') as file:
         json_ = Message.model_json_schema()
         json.dump(json_, indent=2, fp=file)
-
-
-

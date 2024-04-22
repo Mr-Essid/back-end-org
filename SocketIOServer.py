@@ -32,20 +32,11 @@ socket_io_app = ASGIApp(
 )
 
 
-async def save_message(message_content: str, type_: MessageType, employer_id: str, session_id: str):
+async def save_message(username: str, message_content: str, type_: MessageType, employer_id: str, session_id: str):
     current_date = datetime.datetime.now()
 
-    print(employer_id)
-    message = {
-        schemes.Message.EMPLOYER_ID: employer_id,
-        schemes.Message.SESSION_ID: session_id,
-        schemes.Message.DATE_TIME: current_date,
-        schemes.Message.TYPE: type_,
-        schemes.Message.MESSAGE_CONTENT: message_content
-    }
-
     message = Message(message_content=message_content, type_=type_, employer_id=employer_id, session_id=session_id,
-                      date_time=current_date)
+                      date_time=current_date, username=username)
 
     res = await db.get_collection(Collections.MESSAGE).insert_one(message.__dict__)
 
@@ -104,7 +95,7 @@ class Department(AsyncNamespace):
             await self.emit("join", [username.split("@")[0]])
             # save message to database
 
-            await save_message("user join", MessageType.JOIN, user_info.get('user_id'), user_info.get('session_id'))
+            await save_message(user_info.get('username'), "user join", MessageType.JOIN, user_info.get('user_id'), user_info.get('session_id'))
 
         except (JWTError, ExpiredSignatureError, JWTClaimsError) as e:
             print(f"There is Problem! {e}")
@@ -127,7 +118,7 @@ class Department(AsyncNamespace):
         session_id = data_user.get('session_id')
 
         await self.emit('response', [user_id, username, data])
-        await save_message(data, MessageType.MESSAGE, user_id, session_id)
+        await save_message(username, data, MessageType.MESSAGE, user_id, session_id)
         return 'OK', 200
 
     async def on_discition(self, sid, data):
