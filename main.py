@@ -70,7 +70,7 @@ async def message(client, topic, payload, qof, properties):
 @app.on_event("startup")
 async def startup_event():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(crypt_synchronize, "interval", minutes=30)  # update the key every 30m
+    scheduler.add_job(crypt_synchronize, "interval", minutes=10)  # update the key every 10m
     scheduler.start()
     Database()
     print('all configurations are done')

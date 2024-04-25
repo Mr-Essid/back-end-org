@@ -167,7 +167,7 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
     return state
 
 
-@project_route.delete('/{id_pro}', tags=Admin_only)
+@project_route.delete('/{id_proj}', tags=Admin_only)
 async def delete_project(id_proj: str, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     is_bson_id(id_proj)
