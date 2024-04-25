@@ -45,7 +45,7 @@ mqtt_config = MQTTConfig(
     port=PORT_MQTT,
     ssl=True,
     will_message_topic="/disconnect",
-    will_message_message="mqtt disconnect from server"
+    will_message_message="mqtt disconnect from server 0000"
 )
 
 fast_mqtt = FastMQTT(
@@ -58,13 +58,19 @@ fast_mqtt.init_app(app)
 
 @fast_mqtt.on_connect()
 def connect(client, flags, rc, properties):
-    fast_mqtt.client.subscribe("/mqtt")
+    fast_mqtt.client.subscribe("/get_secure_key")
     print("Connected: ", client, flags, rc, properties)
 
 
 @fast_mqtt.on_message()
 async def message(client, topic, payload, qof, properties):
-    pass  # here we don't need any received message and thanks, please don't ask me why I put it because I love it ok !!!
+    if topic == '/get_secure_key':
+        with open('./crypto.key', 'rb') as file:
+            key_to_publish = file.read().decode('utf-8', 'ignore')
+            fernet_en_key = CRYPTO_KEY_RASPBERRYPI.encode()
+            data_encrypted = encrypt_api_key(key_to_publish, fernet_en_key)
+            fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
+
 
 
 @app.on_event("startup")
@@ -93,10 +99,10 @@ def crypt_synchronize():
     fernet_en_key = CRYPTO_KEY_RASPBERRYPI.encode()
     data_encrypted = encrypt_api_key(RASPBERRYPI_KEY, fernet_en_key)
 
-    # try:
-    #     # fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
-    # except Exception as e:  # I haven't seen the error and there is no indicator for in the doc, so it's Exception
-    #     pass
+    try:
+        fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
+    except Exception as e:  # I haven't seen the error and there is no indicator for in the doc, so it's Exception
+        pass
 
     # IF ALL WORK FINE WE WILL MODIFY THE KEY IN OUR SIDE mqtt will try to reconnect automatically
     with open('crypto.key', 'wb') as file:
