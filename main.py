@@ -7,10 +7,10 @@ from bson import ObjectId
 from fastapi import FastAPI, Request, HTTPException, Depends
 from apscheduler.schedulers.background import BackgroundScheduler
 from starlette import status
-
+from logging import Logger
 import schemes
 from database_config.Collections import Collections
-from model.Employer import Roles
+from model.Employer import Roles, EmployerResponse
 from model.History import HistoryDepartment, HistorySecure
 from model.Session import SessionRequest, SessionResponseAfter, SessionState
 from route.employer_routes import employer_route
@@ -43,10 +43,16 @@ mqtt_config = MQTTConfig(
     password=PASSWORD_MQTT,
     host=HOST_MQTT,
     port=PORT_MQTT,
-    ssl=True
+    ssl=True,
+    will_message_topic="/disconnect",
+    will_message_message="mqtt disconnect from server"
 )
 
-fast_mqtt = FastMQTT(config=mqtt_config)
+fast_mqtt = FastMQTT(
+    config=mqtt_config,
+    mqtt_logger=Logger("mqtt logger"),
+
+)
 fast_mqtt.init_app(app)
 
 
@@ -87,13 +93,13 @@ def crypt_synchronize():
     fernet_en_key = CRYPTO_KEY_RASPBERRYPI.encode()
     data_encrypted = encrypt_api_key(RASPBERRYPI_KEY, fernet_en_key)
 
-    try:
-        fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
-    except Exception as e:  # I haven't seen the error and there is no indicator for in the doc, so it's Exception
-        pass
+    # try:
+    #     # fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
+    # except Exception as e:  # I haven't seen the error and there is no indicator for in the doc, so it's Exception
+    #     pass
 
     # IF ALL WORK FINE WE WILL MODIFY THE KEY IN OUR SIDE mqtt will try to reconnect automatically
-    with open('crypto.key.', 'wb') as file:
+    with open('crypto.key', 'wb') as file:
         file.write(new_key.encode())
 
     print('job done')
@@ -102,14 +108,14 @@ def crypt_synchronize():
 async def check_permission_pi(api_key: str):
     async with aiofiles.open('crypto.key', 'rb') as file:
         key_ = await file.read()
-    print(key_)
+
     if not api_key:
         raise HTTPException(
             detail="Request Not Permitted",
             status_code=status.HTTP_401_UNAUTHORIZED
         )
     key_s = api_key.split(" ")
-    if len(key_s) < 2 or key_s[0] != 'Bearer' or key_s[1] != key_:
+    if len(key_s) < 2 or key_s[0] != 'Bearer' or key_s[1] != key_.decode('utf-8', 'ignore'):
         raise HTTPException(
             detail="request not permitted",
             status_code=status.HTTP_401_UNAUTHORIZED
@@ -130,7 +136,8 @@ async def add_department_history(history_dep_model: HistoryDepartment, request: 
     inserted_id = await db.get_collection(Collections.HISTORY_DEPARTMENT).insert_one(
         data)  # this is the only await should be executed
 
-    fast_mqtt.publish(f'/history/dep/{history_dep_model.employer_id}', str(datetime.now(tz=pytz.timezone('Africa/Tunis'))))
+    fast_mqtt.publish(f'/history/dep/{history_dep_model.employer_id}',
+                      str(datetime.now(tz=pytz.timezone('Africa/Tunis'))))
     return {'status': f'history inserted {str(inserted_id.inserted_id)}'}
 
 
@@ -146,6 +153,19 @@ async def add_secure_history(history_secure_model: HistorySecure, request: Reque
 
     fast_mqtt.publish('/history/secure', history_secure_model.manager_id)
     return {'status': f'history inserted {str(inserted_id.inserted_id)}'}
+
+
+@employer_route.get('/departments_/pi/{id_depart}', tags=['pi only request'])
+async def employers_of_department_for_pi(id_depart: int, request: Request):
+    api_key: str = request.headers.get('Authorization')
+    await check_permission_pi(api_key)
+    list_employers_ = await db.get_collection(Collections.USER).find(
+        {schemes.User.ID_DEPARTMENT: id_depart}).to_list(None)
+    if len(list_employers_) == 0:
+        return []
+
+    list_python_ = list(map(lambda item: from_bson(item, EmployerResponse), list_employers_))
+    return list_python_
 
 
 @app.middleware("http")
