@@ -72,7 +72,6 @@ async def message(client, topic, payload, qof, properties):
             fast_mqtt.publish('/crypto_api_key', payload=data_encrypted.decode())
 
 
-
 @app.on_event("startup")
 async def startup_event():
     scheduler = BackgroundScheduler()
@@ -190,14 +189,13 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
     print(sessionRequest.model_dump(by_alias=True))
     begin_at = sessionRequest.beginAt.strftime(date_format)  # date of session
     estimated_time = sessionRequest.estimatedTimeInHours
-    current_date = datetime.now().strftime(date_format)
+    current_date = datetime.now(tz=pytz.timezone('Africa/Tunis')).strftime(date_format.split('T')[0])
 
     if begin_at < current_date or estimated_time < 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="you have error in your input check your begin at time or eTime at least one hour"
         )
-
     department_id = current_user.get(schemes.User.ID_DEPARTMENT)
     department_ep = 'NC'  # Not Connected XD
     updated_at = datetime.now()
