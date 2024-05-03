@@ -34,12 +34,12 @@ class HistoryDepartment(BaseModel):
         We missed this in older models, but it has been corrected in the controller.
     """
 
-    @model_validator(mode='before')
-    @classmethod
-    def check_of_employer_id_valid_objectid(cls, data):
-        if not ObjectId.is_valid(data[HistoryDepartmentS.EMPLOYER_ID]):
-            raise ValueError('Incorrect Employer Id, Same Thing Went Wrong')
-        return data
+    # @model_validator(mode='before')
+    # @classmethod
+    # def check_of_employer_id_valid_objectid(cls, data):
+    #     if not ObjectId.is_valid(data[HistoryDepartmentS.EMPLOYER_ID]):
+    #         raise ValueError('Incorrect Employer Id, Same Thing Went Wrong')
+    #     return data
 
 
 """

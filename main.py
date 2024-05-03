@@ -8,6 +8,9 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from apscheduler.schedulers.background import BackgroundScheduler
 from starlette import status
 from logging import Logger
+
+from starlette.staticfiles import StaticFiles
+
 import schemes
 from database_config.Collections import Collections
 from model.Employer import Roles, EmployerResponse
@@ -26,6 +29,7 @@ from fastapi_mqtt import FastMQTT
 from fastapi_mqtt.config import MQTTConfig
 from env import load_mqtt
 from SocketIOServer import sio, socket_io_app
+from admin_routes.admin_controller import admin_route
 import uvicorn
 import aiofiles
 
@@ -133,6 +137,7 @@ async def check_permission_pi(api_key: str):
 
 @history_route.post('/department')
 async def add_department_history(history_dep_model: HistoryDepartment, request: Request):
+    is_bson_id(history_dep_model.employer_id)
     api_key = request.headers.get('Authorization')
     await check_permission_pi(api_key)
     data = history_dep_model.model_dump()
@@ -283,6 +288,8 @@ app.include_router(router=project_route, tags=['Project Actions'])
 app.include_router(router=history_route, tags=['History Actions'])
 app.include_router(router=sessionRoutes, tags=['Session Actions'])
 app.include_router(router=messageRoute, tags=['Message Actions'])
+app.include_router(router=admin_route, tags=['Admin'])
+app.mount("/static", StaticFiles(directory="./templates/static"), name="static")
 app.mount('/', socket_io_app)
 
 if __name__ == '__main__':
