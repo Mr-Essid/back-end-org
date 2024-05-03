@@ -1,15 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
+{% extends "layout.html" %}
 
-    <h1>
-        Welcome {{ }}
-    </h1>
+{% block title %}
+dashboard
+{% endblock %}
 
 
-</body>
-</html>
+{% block body %}
+<p>
+    hello In The Dashboard
+</p>
+
+<h1 class="display-1">
+    {{ admin.full_name }}
+</h1>
+{% endblock %}
