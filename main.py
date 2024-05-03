@@ -143,6 +143,10 @@ async def add_department_history(history_dep_model: HistoryDepartment, request: 
     data = history_dep_model.model_dump()
     current_date_time = datetime.now()
     data[HistoryDepartmentS.DATE_TIME] = current_date_time
+
+
+    print(data)
+
     inserted_id = await db.get_collection(Collections.HISTORY_DEPARTMENT).insert_one(
         data)  # this is the only await should be executed
 
