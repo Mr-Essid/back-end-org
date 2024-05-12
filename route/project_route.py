@@ -10,6 +10,7 @@ from database_config.configdb import db
 from model.Project import Project, ProjectResponse, ProjectUpdate, ProjectFU
 from utiles import from_bson, get_filled_only, is_bson_id, Admin_only, Employer_access, Admin_Department_manager, \
     Department_Manager_only
+from MQTTFastAPI import fast_mqtt
 
 project_route = APIRouter(prefix='/project')
 
@@ -58,8 +59,13 @@ def check_for_contributed_resources(current_user: dict, id_project_department: i
         )
 
 
+@project_route.get('/')
+async def sendMqttMessage():
+    fast_mqtt.publish('/ok', 'ok from project')
+
+
 # ALL BASC actions add/update/delete(soft)/read one_by_id or many
-@project_route.get('/all', tags=Admin_only)
+@project_route.get('/all', )
 async def get_all_projects(page: int = 1, is_working_on=False, current_user=Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     start = (page - 1) * 15
@@ -108,7 +114,7 @@ async def get_projects_of_current_user(page: int = 1, all_working_one: bool = Fa
     return list_of_pydantic
 
 
-@project_route.get('/{id_project}', tags=Employer_access)
+@project_route.get('/{id_project}')
 async def get_project_by_id(id_project: str, current_user: dict = Depends(get_current_user)):
     is_bson_id(id_project)
     bson_id = ObjectId(id_project)
@@ -124,23 +130,7 @@ async def get_project_by_id(id_project: str, current_user: dict = Depends(get_cu
     return from_bson(project_as_bison, ProjectResponse)
 
 
-@project_route.post('/', tags=Admin_only)
-async def add_project(project_: Project, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, [Roles.ADMIN])
-    json_format = project_.model_dump()
-    if project_.department_identification not in [1, 2, 3]:  # currently those all department ids
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bad Department id"
-        )
-    json_format.update({'create_at: ': datetime.datetime.now()})
-    json_format.update({'update_at': datetime.datetime.now()})
-    id_ = await db.get_collection(Collections.PROJECT).insert_one(json_format)
-    bson_return = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_.inserted_id)})
-    return from_bson(bson_return, ProjectResponse)
-
-
-@project_route.put('/', tags=Admin_only)
+@project_route.put('/')
 async def update_project(project_update_model: ProjectUpdate, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     data_ = project_update_model.model_dump(by_alias=True)
@@ -164,6 +154,7 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
     else:
         project_after_update = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
         state.update({'new_': from_bson(project_after_update, ProjectResponse)})
+        fast_mqtt.publish(f"/project/update/{current_user.get(schemes.User.ID_DEPARTMENT)}", project_update_model.id_)
     return state
 
 
@@ -171,6 +162,7 @@ async def update_project(project_update_model: ProjectUpdate, current_user: dict
 async def delete_project(id_proj: str, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.ADMIN])
     is_bson_id(id_proj)
+
     res_ = await db.get_collection(Collections.PROJECT).update_one({'_id': ObjectId(id_proj)},
                                                                    {'$set': {schemes.Project.IS_ACTIVE: False}})
 
@@ -178,7 +170,7 @@ async def delete_project(id_proj: str, current_user: dict = Depends(get_current_
 
 
 # ADVANCED OPERATIONS
-@project_route.get('/department/{id_dep}', tags=Employer_access)
+@project_route.get('/department/{id_dep}')
 async def get_project_department(id_dep: int, working_on_only: bool = False, page: int = 1,
                                  current_user: dict = Depends(get_current_user)):
     check_for_contributed_resources(current_user, id_dep)
@@ -208,6 +200,7 @@ async def get_project_department(id_dep: int, working_on_only: bool = False, pag
 
 # FREQUENTLY ACTIONS : this and the function update are the same but for bandwidth and complexity raison with have separated them!
 
+
 @project_route.put('frequently-actions', tags=Department_Manager_only)
 async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, [Roles.D_MANAGER])
@@ -231,4 +224,6 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
     else:
         project_after_update = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})
         state.update({'new_': from_bson(project_after_update, ProjectResponse)})
+        fast_mqtt.publish(f'/project/update/{project_.get(schemes.Project.DEPARTMENT_ID)}', id_)
+
     return state

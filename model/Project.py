@@ -27,7 +27,7 @@ class Project(BaseModel):
     progress: int = Field(default=0, le=100, ge=0)
     is_working_on: bool = Field(default=True)
     is_active: bool = Field(default=True)
-    functional_delay: str = Field(default= "2")
+    functional_delay: str = Field(default="2")
     state: State = Field(default=State.PLANNING)
 
 
@@ -57,9 +57,12 @@ class ProjectUpdate(BaseModel):
     id_: str = Field(alias='_id')
     label: str | None = None
     description: str | None = None
+    client_brand: str | None = None
     client_location: str | None = None
+    is_working_on: bool | None = None
     start_at: datetime.datetime | None = None
     end_at: datetime.datetime | None = None
+    functional_delay: str | None = None
 
     @model_validator(mode='before')
     @classmethod
@@ -74,7 +77,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectFU(BaseModel):
     id_: str = Field(alias='_id')
-    progress: int | None = Field(default=None,le=100, ge=1)
+    progress: int | None = Field(default=None, le=100, ge=1)
     state: State | None = None
     is_working_on: bool | None = None
 

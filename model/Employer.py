@@ -46,20 +46,6 @@ class EmployerRequest(BaseModel):
     face_coding: list[float] | None = None
     id_dep: int
 
-    def __dict__(self):
-        return {
-            'full_name': self.full_name,
-            'email': self.email,
-            'nid': self.nid,
-            'password': self.password,
-            'role': self.role,
-            'authorities': self.authorities,
-            'is_active': self.is_active,
-            'id_dep': self.id_dep,
-            'email_verified': self.email_verified,
-            'create_at': self.create_at,
-            'updated_at': self.update_at
-        }
 
     @classmethod
     def atLeastOne_(cls, data: dict):
@@ -73,7 +59,7 @@ class EmployerRequest(BaseModel):
 
 
 class EmployerResponse(EmployerRequest):
-    id_: PyObjectId = Field(alias='_id')
+    id_: str = Field(alias='_id')
     model_config = ConfigDict(arbitrary_types_allowed=True)
     create_at: datetime.datetime
     update_at: datetime.datetime

@@ -65,6 +65,11 @@ class HistorySecure(BaseModel):
         return data
 
 
+
+class HistorySecureResponse(HistorySecure):
+    id_: str = Field(alias='_id')
+
+
 class CountDateHistory(BaseModel):
     id_: str = Field(alias='_id')
     count: int

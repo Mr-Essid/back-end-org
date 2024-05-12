@@ -3,6 +3,8 @@ import datetime
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends
 from starlette import status
+
+from MQTTFastAPI import fast_mqtt
 from model.Employer import Roles
 from model.Session import SessionState, SessionResponseAfter, SessionRequest, SessionResponseBefore, SessionUpdate
 from database_config.configdb import db
@@ -156,3 +158,43 @@ async def get_last_hot_session_cu(current_user: dict = Depends(get_current_user)
     from_bson_to_pydantic = list(map(lambda item: from_bson(item, SessionResponseAfter), latest_session_hot))
 
     return from_bson_to_pydantic[0] if len(from_bson_to_pydantic) > 0 else None
+
+
+@sessionRoutes.put('/active/{id_session}')
+async def activeSession(id_session: str, activation_state: SessionState, current_user=Depends(get_current_user)):
+    is_bson_id(id_session)
+    session_on_question = await db.get_collection(Collections.SESSION).find_one(
+        {schemes.Session.ID_: ObjectId(id_session)})
+
+    if session_on_question is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No Session With Id {id_session}'
+        )
+
+    creator_id = session_on_question.get(schemes.Session.D_ID)
+    check_for_contributed_resources(current_user, creator_id)
+    if activation_state == SessionState.ACTIVE:
+        await db.get_collection(Collections.SESSION).update_many(
+            {schemes.Session.ISALIVE: True, schemes.Session.D_ID: session_on_question.get(schemes.Session.D_ID)},
+            {'$set': {schemes.Session.ISALIVE: False}})  # terminate activated session while this one is alive
+
+        fast_mqtt.publish(f'/session/{current_user.get(schemes.User.ID_DEPARTMENT)}',
+                          'has been activated'.encode())
+
+    query = {
+        schemes.Session.ISALIVE: True,
+        schemes.Session.IS_DONE: True
+    }
+    if activation_state == SessionState.DIS_ACTIVE:
+        query.update({schemes.Session.ISALIVE: False})
+        query.update({schemes.Session.UPDATED_AT: datetime.now()})
+
+    res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
+                                                                  {'$set': query})
+
+    return {
+        'state': 'session activated successfully'
+    } if res.modified_count > 0 else {
+        'state': 'some things went wrong'
+    }

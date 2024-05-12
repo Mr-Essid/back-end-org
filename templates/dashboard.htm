@@ -1,0 +1,461 @@
+{% extends "layout.html" %}
+
+
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', path='/dashboard_style.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
+{% endblock %}
+
+
+{% block title %}
+Dashboard iotek
+{% endblock %}
+
+
+
+
+{% block body %}
+
+
+
+<div class="bg-white shadow-sm">
+    <div class="container">
+        {% with our_var = 'hello world', dashboard = True %}
+        {% include "components/navbar.html" %}
+        {% endwith %}
+    </div>
+</div>
+
+<div class="container my-2 py-5">
+
+    <div class="header mb-5 border-bottom">
+        <h2>
+            Project Progress
+        </h2>
+
+        <p class=".load">
+            project progress of each department visualisation
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <canvas class="chart" id="ele"></canvas>
+        </div>
+
+        <div class="col-lg-4 ">
+            <canvas class="chart" id="it"></canvas>
+        </div>
+        <div class="col-lg-4">
+            <canvas class="chart" id="mgt"></canvas>
+        </div>
+    </div>
+
+
+    <div class="header my-5 border-bottom">
+        <h2>
+            History
+        </h2>
+
+        <p class=".load">
+            history of entry for each department
+        </p>
+    </div>
+
+
+
+    <div class="row">
+        <div class="col-lg-4">
+            <canvas class="history" id="ele"></canvas>
+        </div>
+
+        <div class="col-lg-4 ">
+            <canvas class="history" id="it"></canvas>
+        </div>
+        <div class="col-lg-4">
+            <canvas class="history" id="mgt"></canvas>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="http://localhost:8008/static/fernetBrowser.js"></script>
+<script>
+
+
+
+    // drowing part
+
+
+    const charts_projct = document.getElementsByClassName('chart');
+    const progress_of_projects_ele = JSON.parse({{ ele_projects| tojson }});
+    const progress_of_projects_it = JSON.parse({{ it_projects| tojson }});
+    const progress_of_projects_mgt = JSON.parse({{ mgt_projects| tojson }});
+
+
+
+    [ele_labels, ele_progress, ele_end_at] = extractField(progress_of_projects_ele);
+    [it_labels, it_progress, it_end_at] = extractField(progress_of_projects_it);
+    [mgt_labels, mgt_progress, mgt_end_at] = extractField(progress_of_projects_mgt);
+
+
+
+    var secret = new fernet.Secret("{{ key }}");
+
+
+    var token = new fernet.Token({
+        secret: secret,
+        time: Date.parse(1),
+        iv: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    })
+    
+
+    console.log("{{ mqtt_username }}")
+
+    var token = new fernet.Token({
+        secret: secret,
+        token: "{{ mqtt_username }}",
+        ttl: 0
+    })
+
+    let username = token.decode()
+
+    console.log(token.decode())
+
+
+    var token = new fernet.Token({
+        secret: secret,
+        token: "{{ mqtt_password }}",
+        ttl: 0
+    })
+
+    let password = token.decode()
+
+    
+
+    const electric_project_pointer = new Chart(charts_projct[0], {
+        type: 'bar',
+        data: {
+            labels: ele_labels,
+            datasets: [{
+                label: 'progress',
+                data: ele_progress,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Electrical Department Project Progress'
+                }
+            }
+        }
+    });
+
+
+    new Chart(charts_projct[1], {
+        type: 'bar',
+        data: {
+            labels: it_labels,
+            datasets: [{
+                label: 'progress',
+                data: it_progress,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+
+            },
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'IT Department Project Progress'
+                }
+            }
+        }
+    });
+
+
+
+    new Chart(charts_projct[2], {
+        type: 'bar',
+        data: {
+            labels: mgt_labels,
+            datasets: [{
+                label: 'progress',
+                data: mgt_progress,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Managment Department Project Progress'
+                }
+            }
+        }
+    });
+
+
+
+
+    const history_ele = {{ ele_history | tojson }};
+    const history_it = {{ it_history | tojson }};
+    const history_mgt = {{ mgt_history | tojson}};
+
+
+
+    const history_ele_list = history_ele.map((value, index) => {
+        return JSON.parse(value);
+    });
+
+
+    const history_it_list = history_it.map((value, index) => {
+        return JSON.parse(value);
+    });
+
+    const history_mgt_list = history_mgt.map((value, index) => {
+        return JSON.parse(value);
+    });
+
+
+
+
+
+
+    const [history_dates_ele, history_count_ele] = historyExtractFeatures(history_ele_list);
+    const [history_dates_it, history_count_it] = historyExtractFeatures(history_it_list);
+    const [history_dates_mgt, history_count_mgt] = historyExtractFeatures(history_mgt_list);
+
+
+
+
+    const ele_hostory_department_data = {
+        labels: history_dates_ele,
+        datasets: [{
+            label: 'History Electric Department',
+            data: history_count_ele,
+            fill: true,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+
+
+
+    const it_hostory_department_data = {
+        labels: history_dates_it,
+        datasets: [{
+            label: 'History IT Department',
+            data: history_count_it,
+            fill: true,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+
+
+    const mgt_hostory_department_data = {
+        labels: history_dates_mgt,
+        datasets: [{
+            label: 'History MGT Department',
+            data: history_count_mgt,
+            fill: true,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    };
+
+
+
+    const history_chart = document.getElementsByClassName('history');
+    console.log('document loaded!!')
+
+
+
+
+    const history_chart_ele_ = new Chart(history_chart[0], {
+        type: 'line',
+        data: ele_hostory_department_data
+    });
+
+
+
+    const history_chart_it_ = new Chart(history_chart[1], {
+        type: 'line',
+        data: it_hostory_department_data
+    });
+
+
+
+    const history_chart_mgt_ = new Chart(history_chart[2], {
+        type: 'line',
+        data: mgt_hostory_department_data
+    });
+
+
+    counter = 0;
+
+    console.log(history_chart_ele_.data);
+
+
+
+
+    function onMessageArrived(message) {
+
+        if (message.destinationName == '/history/depID') {
+            console.log('this function called')
+            fetch(`http://localhost:8008/history/departments/current_user/statistic_latest_days/${message.payloadString}`).then(data => {
+                let json = data.json()
+                console.log(json)
+                return json
+
+            }).then(data => {
+                if (message.payloadString == 1) {
+                    updateCharHistory(history_chart_ele_, data[0])
+                } else if (message.payloadString == 2) {
+                    updateCharHistory(history_chart_it_, data[0])
+
+                } else if (message.payloadString == 3) {
+                    updateCharHistory(history_chart_mgt_, data[0]);
+                } else {
+                    throw Error('problem')
+                }
+                console.log(data)
+            }).catch((raison) => {
+                console.log(raison);
+            });
+        }
+
+
+
+        console.log(message.payloadString);
+
+
+    }
+
+
+
+    let client = new Paho.MQTT.Client('a1bab6f7160c46d9953a7063106f84b9.s1.eu.hivemq.cloud', 8884, 'web-client-id');
+
+
+
+
+    function onConnect() {
+        console.log('connected')
+        client.subscribe("/history/depID")
+    }
+    function onConnectionLost(responseObject) { }
+
+
+
+
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+
+
+    client.connect({
+        onSuccess: onConnect,
+        userName: username,
+        password: password,
+        useSSL: true,
+        onFailure: function (ob) {
+            console.log(ob);
+        }
+    });
+
+
+
+
+
+    function updateCharHistory(chart, data) {
+
+        let index_ = chart.data.labels.indexOf(data._id)
+
+
+
+        console.log(data.count)
+
+        if (data._id && data.count)
+            if (index_ >= 0) {
+                chart.data.datasets[0].data[index_] = data.count
+            } else {
+
+                chart.data.labels.push(data._id);
+                chart.data.datasets[0].data.push(data.count)
+            }
+        chart.update()
+    }
+
+
+
+    // extract features (feature by convention: label, progress, end_at)
+
+    function extractField(my_array) {
+
+
+        const array_type_labels = my_array.map((value, index, arr) => {
+            return value['label']
+        })
+
+
+        const array_type_progress = my_array.map((value, index, arr) => {
+            return value['progress']
+        })
+
+
+        const array_type_end_at = my_array.map((value, index, arr) => {
+            return value['end_at'].split(' ')[0]
+        })
+
+        return [array_type_labels, array_type_progress, array_type_end_at]
+    }
+
+
+    // history extract feature by convention id_, count
+
+
+    function historyExtractFeatures(my_array) {
+        const dates_as_id = my_array.map((value, index) => {
+            return value['id_'];
+        })
+
+        const count_history = my_array.map((value, index) => {
+            return value['count'];
+        })
+
+        return [dates_as_id, count_history]
+    }
+
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+History Assets Place IOTEK
+{% endblock %}
+
+
+
+
+{% block style %}
+    <style>
+        td, th {
+            background-color: transparent !important;
+        }
+
+    </style>
+
+{% endblock %}
+
+
+{% block body %}
+
+<div class="bg-white shadow-sm">
+    <div class="container">
+        {% with history = True %}
+        {% include 'components/navbar.html'%}
+        {% endwith %}
+    </div>
+</div>
+
+<section>
+    <div class="container">
+    
+    <div class="header my-5">
+        <h2>
+            History Assets
+        </h2>
+        <p class=".load">
+            The history of entries into the main assets container.
+        </p>
+    </div>
+
+    <div class="content">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Index
+                    </th>
+                    <th>
+                        Date
+                    </th>
+                    <th>
+                        Time
+                    </th>
+                    <th>
+                        Manager
+                    </th>
+                    <th>
+                        View
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for  element in list_secure %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td> {{ element.date_time.__str__().split(' ')[0] }} </td>
+                        <td> {{ element.date_time.__str__().split(' ')[1].split('.')[0] }}</td>
+                        <td> {{ element.manager_id }} </td>
+                        <td>
+                            <a class="btn btn-primary" href="{{ url_for('history_details').include_query_params(datetime_=element.date_time.__str__(), manager_id=element.manager_id) }}">
+                                view
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</section>
+{% endblock %}

@@ -3,14 +3,16 @@
 	--it-main-color: #3C7EC1;
 	--it-main-color-lighter: hsl(210, 53%, 65%);
 	--it-main-color-lightest: hsl(210, 53%, 80%);
+	--it-main-color-lightest_: hsl(210, 53%, 90%);
 	
 	--it-main-color-darcker: hsl(210, 60%, 40%);
 	--it-main-color-darckest: hsl(210, 70%, 35%);
-	
+	--it-main-color-darckests: hsl(210, 90%, 35%);
 	--it-secondary-color: #f5f3f363;
 
 	--it-ternary-bg: #3C7EC1;
 
+	--it-color-background: #F0F2F5;
 
 	--it-white: #fff;
 	--it-black: 000;
@@ -19,7 +21,7 @@
 
 
 body {
-	background:var(--it-secondary-color);
+	display: block !important;
 }
 
 
@@ -42,6 +44,9 @@ body {
 
 
 .border-color-input {
-	border-color: var(--it-black);
+	border-color: var(--it-main-color);
 }
 
+.from_color {
+    background-color: var(--it-white);
+}

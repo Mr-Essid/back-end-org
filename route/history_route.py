@@ -1,8 +1,11 @@
 import datetime
+from typing import Annotated
 
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Cookie, HTTPException, Request, status, Depends
 
+from JWTUtilits import decodeAccessToken
+from admin_routes.admin_controller import getCurrentAdmin
 import schemes
 from database_config.Collections import Collections
 from model.Employer import Roles
@@ -13,6 +16,8 @@ from utiles import from_bson, is_bson_id
 from .login_route import get_current_user
 
 history_route = APIRouter(prefix='/history')
+
+
 
 """
     as I said before there is no update in the  history, why we even need :!
@@ -61,9 +66,23 @@ async def get_history_of_employers_five_days_ago(current_user: dict = Depends(ge
     print(type(id_user))
     list_of_bson_object = await db.get_collection(Collections.HISTORY_DEPARTMENT).aggregate([
         {'$match': {HistoryDepartmentS.EMPLOYER_ID: id_user}},
-        {'$sort': {'date_time': -1}},
         {'$group': {'_id': {'$dateToString': {'format': "%Y-%m-%d", 'date': "$date_time"}}, 'count': {'$sum': 1}}},
+        {'$sort': {'_id': -1}},
     ]).to_list(5)
+
+    pydantic_list = list(map(lambda item: from_bson(item,  CountDateHistory), list_of_bson_object))
+    return pydantic_list
+
+
+@history_route.get('/departments/current_user/statistic_latest_days/{department}')
+async def get_history_of_employers_latest_days_ago(department: int,current_user: dict = Depends(getCurrentAdmin)):
+
+    list_of_bson_object = await db.get_collection(Collections.HISTORY_DEPARTMENT).aggregate([
+        {'$match': {HistoryDepartmentS.DEPARTMENT_ID: department}},
+        {'$group': {'_id': {'$dateToString': {'format': "%Y-%m-%d", 'date': "$date_time"}}, 'count': {'$sum': 1}}},
+        {'$sort': {'_id': -1}},
+    ]).to_list(1)
+
 
     pydantic_list = list(map(lambda item: from_bson(item,  CountDateHistory), list_of_bson_object))
     return pydantic_list
@@ -111,5 +130,12 @@ async def get_manager_history(manager_id: str, page: int = 1, current_user: dict
         15).to_list(15)
     list_without_object_id = list(map(lambda item: from_bson(item, HistorySecure), list_with_object_id))
     return list_without_object_id
+
+
+
+
+
+
+
 
 # history of current_user

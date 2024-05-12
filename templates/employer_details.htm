@@ -1,0 +1,357 @@
+{% extends "layout.html" %}
+
+
+
+
+{% block title %}
+
+    Employer Iotek
+
+{% endblock title%}
+
+
+{% block style %}
+    <style>
+
+        td, th {
+            background-color: transparent !important;
+        }
+
+        /* #upgred_content {
+            
+            transition:1s 1s;
+        } */
+    </style>
+{% endblock %}
+
+
+{% block body %}
+{% with department=True %}
+
+<div class="bg-whie shadow-sm">
+    <div class="container">
+        {% include "components/navbar.html" %}
+    </div>
+</div>
+
+
+{% endwith %}
+
+<div class="container">
+    <div class="header my-5 border-bottom">
+        <h3>
+            Employer Details
+        </h3>
+    </div>
+
+    <h4 class="mb-4">
+        Employer
+    </h4>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        id
+                    </th>
+                    <th>
+                        full name
+                    </th>
+                    <th>
+                        email
+                    </th>
+                    <th>
+                        grad
+                    </th>
+
+                    <th>
+                        upgrade
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr class="align-middle">
+                    <td>
+                        {{ employer._id }}
+                    </td>
+                    <td>
+                        {{ employer.full_name }}
+                    </td>
+                    <td>
+                        {{ employer.email }}
+                    </td>
+                    <td>
+                        {{ employer.role }}
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                            upgrade
+                        </button>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div id="upgred_content" style="width: 600px; margin: auto;" class="d-none my-4 border rounded p-5">
+        <div class="w-100 d-flex justify-content-end" >
+            <button type="button" class="btn-close" aria-label="Close" id="close-button"></button>
+        </div>
+        <div class="content">
+            <div class="w-100">
+                <h5 class="border-bottom w-100 py-3">
+                    first step
+                </h5>
+            </div>
+
+            <div class="header">
+                <h3>
+                    Select Face Image
+                </h3>
+                <p>
+                    select clear face photor to the new department manager
+                </p>
+            </div>
+
+            <div class="form_ center">
+                <div class="">
+
+                    <div class="video_placeholder">
+                        <video id="video_stream" width="500" height="400" autoplay> </video>
+                    </div>
+                    <div class="pic">
+
+                        <canvas id="photo" width="500" height="400" class="d-none">
+                        </canvas>
+
+                        <div class="status my-2">
+                            <div class="d-flex align-items-center justify-content-between d-none" id="image-accepted">
+                                <h5 class="m-0">
+                                    image accepted
+                                </h5>
+                                <div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff00"
+                                        class="bi bi-check-circle" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path
+                                            d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between d-none" id="image-refused">
+                                <h5 class="m-0">
+                                    image refused
+                                </h5>
+                                <div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ff0000"
+                                        class="bi bi-x-circle" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path
+                                            d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="take_pic my-4 col-auto">
+                            <button class="captrue btn btn-secondary" id="btn-start-stream">
+                                Start Stream
+                            </button>
+                        </div>
+                        <div class="take_pic my-4 col-auto">
+                            <button class="captrue btn btn-secondary" id="btn-take-pic">
+                                Take Picture
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="d-none" id="second-step">
+                <div class="w-100">
+                    <h5 class="border-bottom w-100 py-3">
+                        second step
+                    </h5>
+                </div>
+                <div>
+                    <form action="{{ url_for('update_manager') }}" method="post" name="upload-image" enctype="application/x-www-form-urlencoded">
+                        <p>
+                            by accepting you will <u>change</u> the manager of department
+                        </p>
+                        <input type="hidden" name="face_coding"/>
+                        <input type="hidden" name="employer" value="{{ id_ }}"/>
+                        <input type="hidden" name="department" value="{{ department.department_identification }}"/>
+
+                        <button class="btn btn-info" type="submit">
+                            ACCEPT
+                        </button>
+                    </form>
+
+
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Note</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                you have to know that if you will get upgrade this othere employer will get downgrade
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-info" id="upgrade" data-bs-dismiss="modal">Understood</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock body %}
+
+
+
+{% block script %}
+
+
+<script>
+
+    let video = document.getElementById('video_stream')
+    let takePic = document.getElementById('btn-take-pic')
+    takePic.disabled = true
+    let start_stream_btn = document.getElementById('btn-start-stream')
+    let photo = document.getElementById('photo')
+    let second_step = document.getElementById('second-step')
+
+    let accepted = document.getElementById('image-accepted')
+    let refused = document.getElementById('image-refused')
+    let loading = null
+
+    document.getElementById('upgrade').addEventListener('click', function (ev) {
+        document.getElementById('upgred_content').classList.remove('d-none')
+        video.classList.remove('d-none')
+        start_stream_btn.disabled = false
+        takePic.disabled = true
+        
+    });
+
+
+    document.getElementById('close-button').addEventListener('click', (e) => {
+        if ("srcObject" in video) {
+            video.srcObject = null;
+
+        } else {
+            video.src = null;
+        }
+
+        video.classList.add('d-none')
+        document.getElementById('upgred_content').classList.add('d-none')
+        video.classList.add('d-none')
+
+
+    })
+    document.getElementById('btn-start-stream').addEventListener('click', async function () {
+        this.disabled = true
+        takePic.disabled = false
+        second_step.classList.add('d-none')
+        accepted.classList.add('d-none')
+        refused.classList.add('d-none')
+        photo.classList.add('d-none')
+        video.classList.remove('d-none')
+        
+        this.classList.remove('placeholder')
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+
+        if ("srcObject" in video) {
+            video.srcObject = mediaStream;
+        } else {
+            // Avoid using this in new browsers, as it is going away.
+            video.src = URL.createObjectURL(mediaStream);
+        }
+    });
+
+
+    takePic.addEventListener('click', async function (e) {
+        this.disabled = true
+        start_stream_btn.disabled = false
+
+        photo.getContext("2d").drawImage(video, 0, 0, photo.width, photo.height)
+        photo.classList.remove('d-none')
+
+        let url = photo.toDataURL('image/jpeg')
+
+        photo.toBlob(async (blob) => {
+            let file = new File([blob], 'image.jpg', { type: 'image/jpeg' })
+
+            var data = new FormData()
+            data.append('file_', file)
+            console.log(file.size);
+            const response = await fetch("https://AmineEssid.pythonanywhere.com/resolve_image", {
+                method: "POST",
+                headers: {
+                    'access-control-allow-credentials': true
+                },
+                body: data,
+            });
+
+            console.log(response.status);
+            console.log(response.headers);
+
+            if (response.status == 200) {
+                json_response = await response.json()
+                console.log(json_response.status)
+                console.log(json_response.description)
+                document.forms['upload-image'].face_coding.value = json_response.body
+                accepted.classList.remove('d-none');
+                second_step.classList.remove('d-none')
+            } else {
+                refused.classList.remove('d-none')
+            }
+
+        }, 'image/jpeg')
+
+        if ("srcObject" in video) {
+            video.srcObject = null;
+
+        } else {
+            video.src = null;
+        }
+
+        video.classList.add('d-none')
+    });
+
+    
+    
+    document.forms['upload-image'].onsubmit = function(event) {
+
+        console.log(document.forms['upload-image'].face_coding)
+
+    }
+
+</script>
+
+
+{% endblock script %}

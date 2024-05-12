@@ -1,0 +1,118 @@
+{% extends 'layout.html'%}
+
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', path='history_secure_details.css') }}" {% endblock %} {% block body %}
+<div class="bg-white shadow-sm">
+    <div class="container">
+        {% with history = True %}
+        {% include 'components/navbar.html'%}
+        {% endwith %}
+    </div>
+</div>
+<div>
+
+    <div class="container">
+
+        <div class="header my-5">
+            <h3>
+                History Details
+            </h3>
+        </div>
+
+        <h4 class="mb-4">
+            Employer Details
+        </h4>
+
+        <div class="table-responsive">
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>
+                            id
+                        </th>
+                        <th>
+                            full name
+                        </th>
+                        <th>
+                            email
+                        </th>
+                        <th>
+                            grad
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>
+                            {{ manager._id }}
+                        </td>
+                        <td>
+                            {{ manager.full_name }}
+                        </td>
+                        <td>
+                            {{ manager.email }}
+                        </td>
+                        <td>
+                            {{ manager.role }}
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+
+        <div>
+            <h4 class="my-4">
+                Time Details
+            </h4>
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>
+                            #
+                        </th>
+                        <th>
+                            date
+                        </th>
+                        <th>
+                            time
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>
+                            1
+                        </td>
+                        <td>
+                            {{ datetime_.split(' ')[0] }}
+                        </td>
+                        <td>
+                            {{ datetime_.split(' ')[1].split('.')[0] }}
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}
+
+
+
+{% block script %}
+
+
+{% endblock %}

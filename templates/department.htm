@@ -1,0 +1,500 @@
+{% extends "layout.html" %}
+
+
+{% block style %}
+
+    <style>
+        td, th {
+            background-color: transparent !important;
+        }
+    </style>
+
+{% endblock %}
+
+{% block title %}
+    Departments Iotek
+
+{% endblock %}
+
+{% block body %}
+
+<div class="bg-white shadow-sm sticky-top">
+    <div class="container">
+        {% with department='current' %}
+        {% include "components/navbar.html" %}
+        {% endwith %}
+    </div>
+</div>
+
+
+
+<div class="container">
+    <div class="mt-3 d-none" id="alert-container">
+        <div class="alert d-flex align-items-center justify-content-between " id="alert-statue"
+            role="alert">
+            <div class="d-flex align-items-center">
+                <div style="width: 28px; max-width: 100%;" id="alert-icon">
+                </div>
+                <p class="mb-0" id="alert-title">
+                </p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close-button"></button>
+        </div>
+
+    </div>
+    <div class="header my-5 border-bottom pb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3>
+                {{ department.name_department }}
+            </h3>
+            <div class="btn-group" role="group" aria-label="Basic outlined example">
+                <button type="button" class="btn btn-outline-primary active" id="project_btn">Projects</button>
+                <button type="button" class="btn btn-outline-primary" id="employer_btn">Employers</button>
+                <button type="button" class="btn btn-outline-primary" id="history_btn">History</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="employer_content" class="d-none">
+        <div class="content">
+            {# first table projects #}
+            <div class="d-flex justify-content-between w-100 mb-4 align-items-center">
+                <h4 class="mb-0">
+                    Employers
+                </h4>
+                <a href="{{ url_for('view_add_employer', dep_identifier=id_dep) }}" class="btn btn-outline-primary">
+                    NEW
+                </a>
+            </div>
+
+            <table class="table table-hover" style="background-color: transparent !important;">
+                <thead class="background-color: transparent">
+                    <tr>
+                        <th>
+                            ID
+                        </th>
+
+                        <th>
+                            Full Name
+                        </th>
+
+                        <th>
+                            Email
+                        </th>
+
+                        <th>
+                            Role
+                        </th>
+                        <th>
+                            View
+                        </th>
+                    </tr>
+                </thead>
+                <tbody style="color: black;">
+
+                    {% for employer in employers %}
+                    <tr class="align-middle">
+                        <td>
+                            {{ employer.id_ }}
+                        </td>
+
+                        <td>
+                            {{ employer.full_name }}
+                        </td>
+
+                        <td>
+                            {{ employer.email }}
+                        </td>
+
+                        <td>
+                            {{ employer.role }}
+                        </td>
+
+                        <td>
+                            {% if employer.role != 'ADMIN'%}
+                            <a href="{{ url_for('employer_details', id_=employer.id_) }}" class="btn btn-primary">
+                                Details </a>
+                            {% else %}
+                            <a href="#" class="btn btn-secondary"> info </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+
+        </div>
+    </div>
+
+
+    <div id="project_content">
+        <div class="content">
+            {# first table projects #}
+            <div class="d-flex justify-content-between w-100 mb-4 align-items-center">
+                <h4 class="mb-0">
+                    Projects
+                </h4>
+                <a href="{{ url_for('add_project_view', dep_id=department.department_identification) }}"
+                    class="btn btn-outline-primary">
+                    NEW
+                </a>
+            </div>
+
+            <table class="table table-hover" style="background-color: transparent;">
+                <thead>
+                    <tr>
+                        <th>
+                            Label
+                        </th>
+
+                        <th>
+                            Client
+                        </th>
+
+                        <th>
+                            Client Location
+                        </th>
+                        <th>
+                            Start At
+                        </th>
+                        <th>
+                            End At
+                        </th>
+                        <th>
+                            Progress
+                        </th>
+                        <th>
+                            Wroking State
+                        </th>
+                        <th>
+                            Review
+                        </th>
+
+                    </tr>
+                </thead>
+                <tbody style="color: black;">
+
+                    {% for project in projects %}
+                    <tr class="align-middle">
+                        <td>
+                            {{ project.label }}
+                        </td>
+
+                        <td>
+                            {{ project.client_brand }}
+                        </td>
+
+                        <td>
+                            {{ project.client_location }}
+                        </td>
+
+                        <td>
+                            {{ project.start_at.__str__().split(' ')[0] }}
+                        </td>
+
+                        <td>
+                            {{ project.end_at.__str__().split(' ')[0] }}
+                        </td>
+
+                        <td>
+                            {{ project.progress }}%
+                        </td>
+                        <td>
+                            {% if project.is_working_on %}
+                            <span class="badge rounded-pill text-bg-success">resume</span>
+                            {% else %}
+                            <span class="badge rounded-pill text-bg-danger">suspended</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a class="btn btn-primary"
+                                href="{{ url_for('update_project_view', dep_id=department.department_identification , project_id=project.id_) }}">
+                                edit
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+
+        </div>
+    </div>
+
+
+
+
+    <div id="history_content" class="d-none">
+        <div class="content">
+            {# first table historys #}
+            <div class="d-flex justify-content-between w-100 mb-4 align-items-center">
+                <h4 class="mb-0">
+                    historys
+                </h4>
+            </div>
+
+            <table class="table table-hover" style="background-color: transparent;">
+                <thead>
+                    <tr>
+                        <th>
+                            Index
+                        </th>
+                        <th>
+                            Date
+                        </th>
+                        <th>
+                            Time
+                        </th>
+                        <th>
+                            Employer
+                        </th>
+                        <th>
+                            View
+                        </th>
+                    </tr>
+                </thead>
+                <tbody style="color: black;">
+
+                    {% for history in historys %}
+                    <tr class="align-middle">
+                        <td>
+                            {{ loop.index }}
+                        </td>
+
+                        <td>
+                            {{ history.date_time.__str__().split(' ')[0] }}
+                        </td>
+
+                        <td>
+                            {{ history.date_time.__str__().split(' ')[1].split('.')[0] }}
+                        </td>
+
+                        <td>
+                            {{ history.employer_id }}
+                        </td>
+                        <td>
+                            <a class="btn btn-primary"
+                                href="{{ url_for('history_details').include_query_params(manager_id = history.employer_id, datetime_ = history.date_time.__str__()) }}">
+                                Details
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+
+        </div>
+    </div>
+
+    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+        <symbol id="check-circle-fill" viewBox="0 0 16 16">
+            <path
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+        </symbol>
+        <symbol id="info-fill" viewBox="0 0 16 16" >
+            <path
+                d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+        </symbol>
+        <symbol id="exclamation-triangle-fill" viewBox="0 0 16 16">
+            <path
+                d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+        </symbol>
+    </svg>
+
+
+</div>
+
+{% endblock body %}
+
+
+{% block script %}
+<script>
+
+
+    if (window.location.search.length > 0) {
+
+        keys_value_paire = window.location.search.substring(1).split('&')
+
+        map_ = new Map()
+
+        keys_value_paire.forEach((element) => {
+            key_value = element.split('=')
+
+            map_.set(key_value[0], key_value[1])
+        }
+        )
+
+        console.log(map_)
+
+        if (map_.get('section')) {
+            value = map_.get('section')
+            project_section = document.getElementById('project_content')
+            employer_section = document.getElementById('employer_content')
+            history_section = document.getElementById('history_content')
+
+            if (value == 'x-turn-p') {
+                project_section.classList.remove('d-none')
+                employer_section.classList.add('d-none')
+                history_section.classList.add('d-none')
+
+                document.getElementById('employer_btn').classList.remove('active')
+                document.getElementById('history_btn').classList.remove('active')
+                document.getElementById('project_btn').classList.add('active')
+
+
+            }
+
+            if (value == 'x-turn-e') {
+
+                employer_section.classList.remove('d-none')
+                project_section.classList.add('d-none')
+                history_section.classList.add('d-none')
+
+                document.getElementById('employer_btn').classList.add('active')
+                document.getElementById('history_btn').classList.remove('active')
+                document.getElementById('project_btn').classList.remove('active')
+
+
+
+            }
+
+            if (value == 'x-turn-h') {
+
+                history_section.classList.remove('d-none')
+                project_section.classList.add('d-none')
+                employer_section.classList.add('d-none')
+
+                document.getElementById('employer_btn').classList.remove('active')
+                document.getElementById('history_btn').classList.add('active')
+                document.getElementById('project_btn').classList.remove('active')
+
+            }
+
+        }
+
+
+        let state = map_.get('status')
+
+
+        if (state) {
+
+            let alert_ = document.getElementById('alert-statue')
+            let icon_ = document.getElementById('alert-icon')
+            let container = document.getElementById('alert-container')
+            let message_ = ""
+            if (state === 'error') {
+                alert_.classList.remove('alert-success')
+                alert_.classList.add('alert-info')
+                icon_.innerHTML = '<svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info" fill="#6C757D" width="20" height=20><use xlink:href="#info-fill"/></svg>'
+                
+                message_ = "With Failed Status."
+
+            }
+
+            if (state === 'success') {
+                alert_.classList.remove('alert-info')
+                alert_.classList.add('alert-success')
+                icon_.innerHTML = '<svg class="bi flex-shrink-0 me-2" role="img" aria-label="Success:" fill="#28A745" width="20"  height=20><use xlink:href="#check-circle-fill"/></svg>'
+                alert_.classList.remove('d-none')
+            
+                message_ = "With Sucess Status."
+            
+            }
+            content = map_.get('content')
+            if(content && message_.length != 0) {
+                let message = document.getElementById('alert-title')
+                let ok = false
+
+                if(content == 'u-employer') {
+                    message.innerHTML = "Employer Updated " + message_
+                    ok = true
+                }
+
+                
+
+                if(content == 'u-project') {
+                    message.innerHTML = "Project Updated " + message_
+                    ok = true
+                }
+
+
+                if(content == 'a-project') {
+                    message.innerHTML = "Project Added " + message_
+                    ok = true
+                }
+
+
+                if(content == 'a-employer') {
+                    message.innerHTML = "Employer Added " + message_
+                    ok = true
+                }
+
+                if(ok)
+                container.classList.remove('d-none')
+                
+
+            }
+
+        }
+
+
+
+    }
+
+    document.getElementById('project_btn').onclick = function (e) {
+        window.history.replaceState(null, '', window.location.pathname);
+        document.getElementById('employer_btn').classList.remove('active')
+        document.getElementById('history_btn').classList.remove('active')
+        document.getElementById('project_btn').classList.add('active')
+        document.getElementById('employer_content').classList.add('d-none')
+        document.getElementById('history_content').classList.add('d-none')
+        document.getElementById('project_content').classList.remove('d-none')
+    }
+
+
+
+    document.getElementById('employer_btn').onclick = function (e) {
+        window.history.replaceState(null, '', window.location.pathname);
+        document.getElementById('project_btn').classList.remove('active')
+        document.getElementById('history_btn').classList.remove('active')
+        document.getElementById('employer_btn').classList.add('active')
+        document.getElementById('project_content').classList.add('d-none')
+        document.getElementById('history_content').classList.add('d-none')
+        document.getElementById('employer_content').classList.remove('d-none')
+    }
+
+
+    document.getElementById('history_btn').onclick = function (e) {
+        window.history.replaceState(null, '', window.location.pathname);
+        document.getElementById('project_btn').classList.remove('active')
+        document.getElementById('employer_btn').classList.remove('active')
+        document.getElementById('history_btn').classList.add('active')
+
+        document.getElementById('project_content').classList.add('d-none')
+        document.getElementById('employer_content').classList.add('d-none')
+        document.getElementById('history_content').classList.remove('d-none')
+    }
+
+
+
+
+
+    document.getElementById('close-button').addEventListener('click', (e) => {
+        window.history.replaceState(null, '', window.location.pathname)
+    });
+
+
+
+
+
+</script>
+{% endblock script %}

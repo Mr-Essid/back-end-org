@@ -1,3 +1,5 @@
+import datetime
+import string
 import bson
 from bson.objectid import ObjectId
 from hashlib import sha256
@@ -23,6 +25,16 @@ def from_bson(bsion: dict, Model):
     id_ = str(id_)
     dict_.update({'_id': id_})
     return Model(**dict_)
+
+
+
+def transfom_date(dict_with_datetime: dict):
+    dict_ = {k: v for k, v in dict_with_datetime.items() if type(v) != datetime.datetime}
+    dates = {k: str(v) for k, v in dict_with_datetime.items() if type(v) == datetime.datetime}
+    
+    dict_.update(dates)
+    
+    return dict_
 
 
 def get_filled_only(instance_: dict):
@@ -51,3 +63,38 @@ def is_bson_id(id_bson):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Id Not Valid'
         )
+
+
+
+def check_username(username: str):
+
+    for char_ in username:
+        if char_ in string.punctuation:
+            return False
+        
+    return len(username) >= 4 # at least 4 chars
+
+
+
+
+# validation function utli
+
+def string_validate(
+        string_: str,
+        max: int = 64,
+        min: int = 4,
+        include_sepc_char: bool = False,
+        is_email: bool = False,
+):
+    if len(string_) > max or len(string_) < min:
+        return False
+    
+    if not include_sepc_char:
+        for char in string_:
+            if char in string.punctuation:
+                return False
+    
+    if is_email and not string_.__contains__('@'):
+        return False
+    
+    return True 
