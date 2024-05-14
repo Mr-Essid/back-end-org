@@ -2,7 +2,7 @@ from enum import StrEnum
 
 
 class User(StrEnum):
-    FULL_NAME = 'fill_name'
+    FULL_NAME = 'full_name'
     EMAIL = 'email'
     NID = 'nid'
     FACE_CODDING = 'face_coding'

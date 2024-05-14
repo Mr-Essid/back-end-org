@@ -62,10 +62,24 @@
                 <h4 class="mb-0">
                     Employers
                 </h4>
-                <a href="{{ url_for('view_add_employer', dep_identifier=id_dep) }}" class="btn btn-outline-primary">
-                    NEW
-                </a>
+
+                <div class="d-flex">
+                    <div class="search-button me-2">
+                        <button class="btn" id="search-employers" data-bs-toggle="modal" data-bs-target="#searchModel">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                              </svg>
+                        </button>
+                    </div>
+                    <a href="{{ url_for('view_add_employer', dep_identifier=id_dep) }}" class="btn btn-outline-primary">
+                        NEW
+                    </a>
+                </div>
+                
             </div>
+
+
+            <div class="table-responsive">
 
             <table class="table table-hover" style="background-color: transparent !important;">
                 <thead class="background-color: transparent">
@@ -124,7 +138,7 @@
                 </tbody>
 
             </table>
-
+            </div>
 
         </div>
     </div>
@@ -137,12 +151,28 @@
                 <h4 class="mb-0">
                     Projects
                 </h4>
-                <a href="{{ url_for('add_project_view', dep_id=department.department_identification) }}"
+
+                <div class="d-flex">
+                    <div class="search-button me-2">
+                        <button class="btn" id="search-project" data-bs-toggle="modal" data-bs-target="#searchModelProject">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                              </svg>
+                        </button>
+                    </div>
+
+                    <a href="{{ url_for('add_project_view', dep_id=department.department_identification) }}"
                     class="btn btn-outline-primary">
-                    NEW
-                </a>
+                        NEW
+                    </a>
+                </div>
+                
             </div>
 
+
+            <div class="table-responsive">
+
+        
             <table class="table table-hover" style="background-color: transparent;">
                 <thead>
                     <tr>
@@ -222,6 +252,7 @@
 
             </table>
 
+            </div>
 
         </div>
     </div>
@@ -238,6 +269,9 @@
                 </h4>
             </div>
 
+
+
+        <div class="table-responsive">
             <table class="table table-hover" style="background-color: transparent;">
                 <thead>
                     <tr>
@@ -290,6 +324,7 @@
                 </tbody>
 
             </table>
+        </div>
 
 
         </div>
@@ -312,6 +347,46 @@
 
 
 </div>
+
+
+<div class="modal fade" id="searchModel" tabindex="-1" aria-labelledby="searchModelController" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="searchModelController">Search</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+            <div class="mb-3">
+              <input type="text" class="form-control" id="employer-name" placeholder="name, ex mohamed">
+            </div>        
+        </div>
+
+        <div id="container-fetched-items"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal fade" id="searchModelProject" tabindex="-1" aria-labelledby="searchModelControllerProject" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="searchModelControllerProject">Search</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+            <div class="mb-3">
+              <input type="text" class="form-control" id="project-name" placeholder="name, ex smart auth">
+            </div>        
+        </div>
+
+        <div id="container-fetched-items-project"></div>
+      </div>
+    </div>
+  </div>
 
 {% endblock body %}
 
@@ -446,9 +521,149 @@
 
         }
 
-
-
     }
+
+
+    document.getElementById('employer-name').addEventListener('keyup', (e) => {
+
+      
+        console.log('change')
+        console.log(e.target.value)
+        let fetchedItemsContainer = document.getElementById("container-fetched-items")
+        fetchedItemsContainer.innerHTML  = ""
+        fetchedItemsContainer.innerText  = ""
+        if(e.target.value !== ""){
+            fetch("{{ url_for('search').include_query_params(collection_name='User') }}" + `&q=${e.target.value}&dep_identifier={{ id_dep }}`)
+            .then(
+                (data) => data.json()
+            ).then(
+                (data) => {
+                    fetchedItemsContainer.innerText  = ""
+                    if(data.length == 0){
+                        return
+                    }
+                    data.map((value, index) => {
+                        let current_element = document.createElement('div')
+                        current_element.classList.add('card')
+                        current_element.classList.add('mx-2')
+                        current_element.classList.add('mb-1')
+                        let id_ = value['_id']
+                        console.log(id_)
+                        current_element.innerHTML = `
+                            <div class='px-3 py-2'>
+                                <div class='row'>
+                                    <div class='col'>
+                                        <div class='row'> 
+                                            <div class='col-auto'>                                        
+                                                    <p class='mb-1'><b>Name: </b></p>    
+                                                </div>
+                                                <div class='col'>                                        
+                                                    <p class='mb-0' >${value['full_name']}</p>    
+                                                </div>
+                                            </div>
+                                            <div class='row'> 
+                                                <div class='col-auto'>                                        
+                                                    <p class='mb-0' ><b>Email: </b></p>    
+                                                </div>
+                                                <div class='col'>                                        
+                                                    <p class='mb-0'>${value['email']}</p>    
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class='col-auto'>
+                                            <a class='btn btn-primary stretched-link' href="/admin/employer/details/${id_}" >
+                                                view    
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+                        `
+                        fetchedItemsContainer.appendChild(current_element);
+                    })
+                }
+            )
+        }
+        fetchedItemsContainer.innerHTML = ""
+
+    });
+
+
+
+
+document.getElementById('project-name').addEventListener('keyup', (e) => {
+
+      
+    console.log('change')
+    console.log(e.target.value)
+    let fetchedItemsContainer = document.getElementById("container-fetched-items-project")
+    fetchedItemsContainer.innerHTML  = ""
+    fetchedItemsContainer.innerText  = ""
+    if(e.target.value !== ""){
+        fetch("{{ url_for('search').include_query_params(collection_name='Project') }}" + `&q=${e.target.value}&dep_identifier={{ id_dep }}`)
+        .then(
+            (data) => data.json()
+        ).then(
+            (data) => {
+                fetchedItemsContainer.innerText  = ""
+                if(data.length == 0){
+                    return
+                }
+                data.map((value, index) => {
+                    let current_element = document.createElement('div')
+                    current_element.classList.add('card')
+                    current_element.classList.add('mx-2')
+                    current_element.classList.add('mb-1')
+                    let id_ = value['_id']
+                    console.log(id_)
+                    current_element.innerHTML = `
+                    <div class='px-3 py-2'>
+                        <div class='row'>
+                            <div class='col'>
+                                <div class='row'> 
+                                    <div class='col-auto'>                                        
+                                            <p class='mb-1'><b>Label: </b></p>    
+                                        </div>
+                                        <div class='col'>                                        
+                                            <p class='mb-0' >${value['label']}</p>    
+                                        </div>
+                                    </div>
+                                    <div class='row'> 
+                                        <div class='col-auto'>                                        
+                                            <p class='mb-0' ><b>Client: </b></p>    
+                                        </div>
+                                        <div class='col'>                                        
+                                            <p class='mb-0'>${value['client_brand']}</p>    
+                                        </div>
+                                    </div>
+                                    <div class='row'> 
+                                        <div class='col-auto'>                                        
+                                            <p class='mb-0' ><b>End At: </b></p>    
+                                        </div>
+                                        <div class='col'>                                        
+                                            <p class='mb-0'>${value['end_at'].split('T')[0]}</p>    
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class='col-auto'>
+                                    <a class='btn btn-primary stretched-link' href="/admin/project/update_view/{{ id_dep }}/${id_}" >
+                                        view    
+                                    </a>
+                                </div>
+                        </div>
+                    </div>
+                `
+                fetchedItemsContainer.appendChild(current_element);
+            })
+        }
+    )
+}
+    fetchedItemsContainer.innerHTML = ""
+
+});
+
+
+
+
 
     document.getElementById('project_btn').onclick = function (e) {
         window.history.replaceState(null, '', window.location.pathname);

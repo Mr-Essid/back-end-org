@@ -18,64 +18,74 @@ Dashboard iotek
 
 
 
-<div class="bg-white shadow-sm">
-    <div class="container">
-        {% with our_var = 'hello world', dashboard = True %}
-        {% include "components/navbar.html" %}
-        {% endwith %}
-    </div>
-</div>
 
-<div class="container my-2 py-5">
+<div class="main-cont">
 
-    <div class="header mb-5 border-bottom">
-        <h2>
-            Project Progress
-        </h2>
 
-        <p class=".load">
-            project progress of each department visualisation
-        </p>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-4">
-            <canvas class="chart" id="ele"></canvas>
-        </div>
-
-        <div class="col-lg-4 ">
-            <canvas class="chart" id="it"></canvas>
-        </div>
-        <div class="col-lg-4">
-            <canvas class="chart" id="mgt"></canvas>
+    <div class="bg-white shadow-sm">
+        <div class="container">
+            {% with our_var = 'hello world', dashboard = True %}
+            {% include "components/navbar.html" %}
+            {% endwith %}
         </div>
     </div>
 
+    <div class="container my-2 py-5">
 
-    <div class="header my-5 border-bottom">
-        <h2>
-            History
-        </h2>
+        <div class="header mb-5 border-bottom">
+            <h2>
+                Project Progress
+            </h2>
 
-        <p class=".load">
-            history of entry for each department
-        </p>
+            <p class=".load">
+                project progress of each department visualisation
+            </p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4">
+                <canvas class="chart"></canvas>
+            </div>
+
+            <div class="col-lg-4 ">
+                <canvas class="chart"></canvas>
+            </div>
+            <div class="col-lg-4">
+                <canvas class="chart"></canvas>
+            </div>
+        </div>
+
+
+        <div class="header my-5 border-bottom">
+            <h2>
+                History
+            </h2>
+
+            <p class=".load">
+                history of entry for each department
+            </p>
+        </div>
+
+
+
+        <div class="row">
+            <div class="col-lg-4">
+                <canvas class="history"></canvas>
+            </div>
+
+            <div class="col-lg-4 ">
+                <canvas class="history"></canvas>
+            </div>
+            <div class="col-lg-4">
+                <canvas class="history"></canvas>
+            </div>
+        </div>
     </div>
 
-
-
-    <div class="row">
-        <div class="col-lg-4">
-            <canvas class="history" id="ele"></canvas>
-        </div>
-
-        <div class="col-lg-4 ">
-            <canvas class="history" id="it"></canvas>
-        </div>
-        <div class="col-lg-4">
-            <canvas class="history" id="mgt"></canvas>
-        </div>
+    <div class="mt-5">
+        {% include 'components/footer.html'%}
     </div>
+
 </div>
 
 
@@ -83,7 +93,7 @@ Dashboard iotek
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="http://localhost:8008/static/fernetBrowser.js"></script>
+<script src="{{ url_for('static', path='fernetBrowser.js') }}"></script>
 <script>
 
 
@@ -112,7 +122,7 @@ Dashboard iotek
         time: Date.parse(1),
         iv: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     })
-    
+
 
     console.log("{{ mqtt_username }}")
 
@@ -135,7 +145,7 @@ Dashboard iotek
 
     let password = token.decode()
 
-    
+
 
     const electric_project_pointer = new Chart(charts_projct[0], {
         type: 'bar',
@@ -152,7 +162,8 @@ Dashboard iotek
                 y: {
                     beginAtZero: true,
                     max: 100
-                }
+                },
+                
             },
 
             plugins: {

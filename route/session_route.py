@@ -132,10 +132,15 @@ async def updateSession(session_to_update: SessionUpdate, current_user=Depends(g
     new_session = await db.get_collection(Collections.SESSION).find_one({schemes.Session.ID_: ObjectId(id_session)})
 
     if res_.modified_count > 0:
+        fast_mqtt.publish(f'/session/{current_user.get(schemes.User.ID_DEPARTMENT)}',
+                          'has been activated'.encode())
+
         return {
             'state': 'session updated successfully',
             'session': from_bson(new_session, SessionResponseAfter)
         }
+
+
 
     return {
         'status': 'No change at All'
@@ -188,7 +193,7 @@ async def activeSession(id_session: str, activation_state: SessionState, current
     }
     if activation_state == SessionState.DIS_ACTIVE:
         query.update({schemes.Session.ISALIVE: False})
-        query.update({schemes.Session.UPDATED_AT: datetime.now()})
+        query.update({schemes.Session.UPDATED_AT: datetime.datetime.now()})
 
     res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
                                                                   {'$set': query})

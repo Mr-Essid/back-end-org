@@ -1,6 +1,8 @@
 import json
+import re
 from typing import Annotated
 
+import bson
 from bson import ObjectId
 from fastapi import APIRouter, Depends, Cookie, Form, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
@@ -18,7 +20,7 @@ from cryptography.fernet import Fernet
 from env import load_mqtt
 from model import Employer
 from model.Departement import Department
-from model.History import CountDateHistory, HistorySecure, HistorySecureResponse
+from model.History import CountDateHistory, HistorySecureResponse
 import model.History
 from schemes import DepartmentS, HistoryDepartmentS, HistorySecureS, Project
 import model.Project
@@ -40,9 +42,6 @@ USERNAME_MQTT, PASSWORD_MQTT, HOST_MQTT, PORT_MQTT = load_mqtt()
 def getCurrentAdmin(request: Request, session_id: Annotated[str | None, Cookie()] = None):
     print('this callback called')
 
-    if session_id is None:
-        responseIfNotValid = templates.TemplateResponse(name='index.html', request=request)
-        return responseIfNotValid
     try:
         token = decodeAccessToken(session_id)
         email = token.get('sub')
@@ -53,17 +52,20 @@ def getCurrentAdmin(request: Request, session_id: Annotated[str | None, Cookie()
             User.EMAIL: email,
             User.ROLE: role
         }
-    except (ExpiredSignatureError, JWTError, JWTClaimsError) as e:
+    except (ExpiredSignatureError, JWTError, JWTClaimsError, AttributeError) as e:
         if type(e) is ExpiredSignatureError:
             return False, {
                 'status': 'token-exprired'
+            }
+        elif e is AttributeError:
+            return False, {
+                'status': 'token-not-exits'
             }
         else:
             return False, {
                 'status': 'invalid-token'
 
             }
-
 
 
 @admin_route.get('/login', name='login')
@@ -300,6 +302,10 @@ async def department_(department_id: int, request: Request,
     
     """
 
+
+    details_employer_url = f'${request.base_url}/employer/details/'
+    details_project_url = f'${request.base_url}/employer/details/'
+
     redirect_path = request.url_for("login").__str__()
 
     redirect_path = request.url_for("login").__str__()
@@ -353,7 +359,10 @@ async def department_(department_id: int, request: Request,
             'employers': list_employers_without_bson_id,
             'historys': history_of_department_without_bson_id,
             'projects': projects_of_department_without_bson_id,
-            'id_dep': department_id
+            'id_dep': department_id,
+            'project_details_url': details_project_url,
+            'employer_details_url': details_employer_url
+
         }
     )
 
@@ -488,6 +497,7 @@ async def get_employer_details(id_: str, request: Request,
     #        boilerplate code of authentication :)
 
     redirect_path = request.url_for("login").__str__()
+
 
     if current_admin is None:
         return RedirectResponse(
@@ -777,8 +787,6 @@ async def update_store_project(
     )
 
 
-
-
 @admin_route.post('/project/add_store/{id_dep_}', name='add_project_store')
 async def add_project_admin(
         request: Request,
@@ -846,21 +854,11 @@ async def add_project_admin(
     project_add = await db.get_collection(Collections.PROJECT).insert_one(project_model.model_dump())
     fast_mqtt.publish(f"/project/add/{id_dep_}", str(project_add.inserted_id))
 
-
     return RedirectResponse(
         url=request.url_for('department', department_id=id_dep_).include_query_params(status='success',
                                                                                       content='a-project'),
         status_code=status.HTTP_302_FOUND
     )
-
-
-
-# search part ( all search methods by labels )
-
-
-
-
-
 
 
 @admin_route.get('/logout', name='logout')
@@ -872,3 +870,35 @@ def logout_(request: Request, current_admin: Annotated[tuple | None, Depends(get
 
     return_back.delete_cookie('session_id')
     return return_back
+
+
+# search part ( all search methods by labels ) # no need to authenticated for this process
+
+@admin_route.get("/search", name='search')
+async def search_project_by_label(request: Request,q: str, collection_name: Collections,dep_identifier: int, current_admin=Depends(getCurrentAdmin)):
+    # no validation of current authenticated
+
+    if collection_name not in [Collections.PROJECT, Collections.USER]:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="problem with your query"
+        )
+
+
+
+
+    keywords = q.split(" ")
+
+    keywords = list(filter(lambda keyword_: keyword_.isalnum(), keywords))
+    final_keyword = " ".join(keywords).strip()
+    print(final_keyword)
+    regx = bson.regex.Regex(final_keyword)
+
+    field_to_search, model__, department_identifier = (
+        Project.LABEL, model.Project.ProjectResponse, Project.DEPARTMENT_ID) if collection_name == Collections.PROJECT else (
+        User.FULL_NAME, model.Employer.EmployerResponse, User.ID_DEPARTMENT)
+
+    print(field_to_search, model__)
+    res = await db.get_collection(collection_name).find({field_to_search: regx, department_identifier: dep_identifier}).to_list(8)
+    res = list(map(lambda item: from_bson(item, model__), res))
+
+    return res

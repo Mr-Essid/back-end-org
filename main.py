@@ -40,7 +40,6 @@ API_KEY = 'RASPBERRYPI_API_KEY'
 CRYPTO_KEY = 'RASPBERRYPI_CRYPTO_KEY'
 CRYPTO_KEY_RASPBERRYPI = os.getenv(CRYPTO_KEY)
 
-
 app = FastAPI()
 fast_mqtt.init_app(app)
 
@@ -54,7 +53,6 @@ def disconnect(client, flags):
 
 @fast_mqtt.on_connect()
 def connect(client, flags, rc, properties):
-
     # test message
     fast_mqtt.client.subscribe("/get_secure_key")
     fast_mqtt.client.subscribe("/ok")
@@ -160,6 +158,7 @@ async def add_department_history(history_dep_model: HistoryDepartment, request: 
     return {'status': f'history inserted {str(inserted_id.inserted_id)}'}
 
 
+
 @history_route.post('/secure')
 async def add_secure_history(history_secure_model: HistorySecure, request: Request):
     api_key: str = request.headers.get('Authorization')
@@ -194,10 +193,6 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
-
-
-
-
 
 
 @sessionRoutes.post('/')
@@ -248,8 +243,6 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
     return from_bson(new_session_data, SessionResponseAfter)
 
 
-
-
 # project actions
 
 
@@ -270,19 +263,13 @@ async def add_project(project_: Project.Project, current_user: dict = Depends(ge
     return from_bson(bson_return, ProjectResponse)
 
 
-
-
-
-
-
-
 @app.get('/')
 async def main_route():
     list_of_users = await db.list_collection_names()
     fast_mqtt.publish(f'/session/',
                       'has been activated'.encode())
-
     return list_of_users
+
 
 
 app.include_router(router=employer_route, tags=['Employer Actions'])
