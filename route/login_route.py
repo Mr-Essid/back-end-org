@@ -28,12 +28,24 @@ async def login_for_access_token(
 ) -> Token:
     user = await db.get_collection(Collections.USER).find_one({'email': form_data.username})
 
+
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+    if not user.get(User.IS_ACTIVE):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Employer Not Activate",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 
     if not verify_password(form_data.password, user['password']):
         raise HTTPException(

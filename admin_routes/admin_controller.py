@@ -29,7 +29,7 @@ from database_config.Collections import Collections
 from database_config.configdb import db
 from model.Employer import Roles
 from schemes import User
-from utiles import check_username, crypt_pass, from_bson, string_validate, transfom_date, verify_password
+from utiles import check_username, crypt_pass, from_bson, is_bson_id, string_validate, transfom_date, verify_password
 from MQTTFastAPI import fast_mqtt
 
 admin_route = APIRouter(prefix='/admin')
@@ -132,11 +132,11 @@ async def main_dashboard(request: Request, current_admin: Annotated[tuple | None
     current_admin = content
 
     electrical_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 1, Project.IS_ACTIVE: True, Project.IS_WORKING_ON: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 1, Project.IS_WORKING_ON: True}).to_list(None)
     it_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 2, Project.IS_ACTIVE: True, Project.IS_WORKING_ON: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 2, Project.IS_WORKING_ON: True}).to_list(None)
     managment_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 3, Project.IS_ACTIVE: True, Project.IS_WORKING_ON: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 3, Project.IS_WORKING_ON: True}).to_list(None)
 
     electrical_department_projects = list(
         map(lambda item: from_bson(item, model.Project.Project).model_dump(), electrical_department_projects)
@@ -308,7 +308,6 @@ async def department_(department_id: int, request: Request,
 
     redirect_path = request.url_for("login").__str__()
 
-    redirect_path = request.url_for("login").__str__()
 
     if current_admin is None:
         return RedirectResponse(
@@ -379,7 +378,6 @@ async def add_employer(request: Request, dep_identifier: int,
 
     redirect_path = request.url_for("login").__str__()
 
-    redirect_path = request.url_for("login").__str__()
 
     if current_admin is None:
         return RedirectResponse(
@@ -429,7 +427,6 @@ async def store_employer(request: Request,
 
     redirect_path = request.url_for("login").__str__()
 
-    redirect_path = request.url_for("login").__str__()
 
     if current_admin is None:
         return RedirectResponse(
@@ -522,6 +519,7 @@ async def get_employer_details(id_: str, request: Request,
         )
 
     employer: dict = await db.get_collection(Collections.USER).find_one({'_id': ObjectId(id_)})
+    
 
     if employer is None:
         return RedirectResponse(
@@ -533,6 +531,10 @@ async def get_employer_details(id_: str, request: Request,
         {DepartmentS.DEPARTMENT_IDENTIFICATION: employer.get(User.ID_DEPARTMENT)})
     department_ = from_bson(department_, Department)
 
+    history_of_user = await db.get_collection(Collections.HISTORY_DEPARTMENT).find({HistoryDepartmentS.EMPLOYER_ID: str(employer.get(User.ID_)) }).to_list(None)
+
+    history_of_user = list(map(lambda item: from_bson(item, model.History.HistoryDepartment),history_of_user))
+
     response = templates.TemplateResponse(
         request,
         'employer_details.htm',
@@ -541,7 +543,8 @@ async def get_employer_details(id_: str, request: Request,
             'employer': employer,
             'id_': id_,
             'admin': current_admin,
-            'department': department_
+            'department': department_,
+            'history' : history_of_user
         }
 
     )
@@ -898,7 +901,53 @@ async def search_project_by_label(request: Request,q: str, collection_name: Coll
         User.FULL_NAME, model.Employer.EmployerResponse, User.ID_DEPARTMENT)
 
     print(field_to_search, model__)
-    res = await db.get_collection(collection_name).find({field_to_search: regx, department_identifier: dep_identifier}).to_list(8)
+    res = await db.get_collection(collection_name).find({field_to_search: regx, department_identifier: dep_identifier, 'is_active': True }).to_list(6)
     res = list(map(lambda item: from_bson(item, model__), res))
 
     return res
+
+
+
+
+@admin_route.get('/project/{id_project}')
+async def get_project_by_id(id_project: str, current_user: dict = Depends(getCurrentAdmin)):
+    is_bson_id(id_project)
+    bson_id = ObjectId(id_project)
+
+    if not current_user[0]:
+        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='session complate')
+    
+    project_as_bison = await db.get_collection(Collections.PROJECT).find_one({'_id': bson_id})
+
+    if project_as_bison is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Projects With ID {id_project}"
+        )
+
+    return from_bson(project_as_bison, model.Project.ProjectResponse)
+
+
+@admin_route.post("/employer/{id_dep}/deactive/{employer_id}", name='delete-employer')
+async def deactiveEmployer(id_dep: int,employer_id: str, request: Request, current_admin = Depends(getCurrentAdmin)):
+    is_active, admin = current_admin
+
+    
+    if not is_active:
+        return RedirectResponse(request.url_for('login').include_query_params(status = admin.get('status')))
+
+    employer_suspended = await db.get_collection(Collections.USER).update_one({User.ID_: ObjectId(employer_id), User.ROLE: {'$ne': Roles.ADMIN}, User.ROLE: {'$ne': Roles.D_MANAGER}}, { '$set' : {User.IS_ACTIVE: False}})
+    
+    redirectPath = request.url_for('department', department_id = id_dep)
+
+
+    if employer_suspended.modified_count > 0:
+        redirectPath = redirectPath.include_query_params(status = 'success',content='employer-deactivated',  section = 'x-turn-e')
+    else:
+        redirectPath = redirectPath.include_query_params(status = 'error', content='employer-deactivate', section = 'x-turn-e')
+
+
+    return RedirectResponse(
+                redirectPath, status_code=status.HTTP_302_FOUND
+        )
+    

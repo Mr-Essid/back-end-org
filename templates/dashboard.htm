@@ -108,6 +108,8 @@ Dashboard iotek
 
 
 
+
+
     [ele_labels, ele_progress, ele_end_at] = extractField(progress_of_projects_ele);
     [it_labels, it_progress, it_end_at] = extractField(progress_of_projects_it);
     [mgt_labels, mgt_progress, mgt_end_at] = extractField(progress_of_projects_mgt);
@@ -162,8 +164,7 @@ Dashboard iotek
                 y: {
                     beginAtZero: true,
                     max: 100
-                },
-                
+                }                
             },
 
             plugins: {
@@ -176,7 +177,7 @@ Dashboard iotek
     });
 
 
-    new Chart(charts_projct[1], {
+    const it_project_pointer = new Chart(charts_projct[1], {
         type: 'bar',
         data: {
             labels: it_labels,
@@ -206,7 +207,7 @@ Dashboard iotek
 
 
 
-    new Chart(charts_projct[2], {
+    const mgt_project_pointer = new Chart(charts_projct[2], {
         type: 'bar',
         data: {
             labels: mgt_labels,
@@ -244,16 +245,16 @@ Dashboard iotek
 
     const history_ele_list = history_ele.map((value, index) => {
         return JSON.parse(value);
-    });
+    }).slice(-5);
 
 
     const history_it_list = history_it.map((value, index) => {
         return JSON.parse(value);
-    });
+    }).slice(-5);
 
     const history_mgt_list = history_mgt.map((value, index) => {
         return JSON.parse(value);
-    });
+    }).slice(-5);
 
 
 
@@ -344,7 +345,7 @@ Dashboard iotek
 
         if (message.destinationName == '/history/depID') {
             console.log('this function called')
-            fetch(`http://localhost:8008/history/departments/current_user/statistic_latest_days/${message.payloadString}`).then(data => {
+            fetch(`/history/departments/current_user/statistic_latest_days/${message.payloadString}`).then(data => {
                 let json = data.json()
                 console.log(json)
                 return json
@@ -364,13 +365,39 @@ Dashboard iotek
             }).catch((raison) => {
                 console.log(raison);
             });
+
         }
 
 
+        if(message.destinationName.includes('/project/update')) {
 
+            fetch(`/admin/project/${message.payloadString}`).then((data) => data.json()).then(
+                (data) => {
+                    if(message.destinationName == '/project/update/1') {
+                        console.log('department 1')
+                        updateChartProject(electric_project_pointer, data);
+                    }
+
+                    if(message.destinationName == '/project/update/2') {
+                        updateChartProject(it_project_pointer, data);
+
+                    }
+
+
+                    if(message.destinationName == '/project/update/3') {
+                        updateChartProject(mgt_project_pointer, data);
+                    }
+        
+                }
+            );
+
+        
         console.log(message.payloadString);
 
 
+        }
+
+        
     }
 
 
@@ -383,6 +410,7 @@ Dashboard iotek
     function onConnect() {
         console.log('connected')
         client.subscribe("/history/depID")
+        client.subscribe("/project/update/#")
     }
     function onConnectionLost(responseObject) { }
 
@@ -419,13 +447,37 @@ Dashboard iotek
             if (index_ >= 0) {
                 chart.data.datasets[0].data[index_] = data.count
             } else {
-
                 chart.data.labels.push(data._id);
                 chart.data.datasets[0].data.push(data.count)
             }
         chart.update()
     }
 
+
+
+    function updateChartProject(chart_, data)  {
+        
+        console.log(data)
+        console.log(data['is_working_on']);
+
+        if(data['is_working_on']) {
+            let label_ = data['label']
+
+            if (chart_.data.labels.includes(label_)) {
+                let index_ = chart_.data.labels.indexOf(label_)
+                chart_.data.datasets[0].data[index_] = data['progress']
+            }else {
+                chart_.data.labels.push(label_);
+                chart_.data.datasets[0].data.push(data['progress'])
+            }
+            chart_.update();
+        }
+
+
+        // wait minute
+
+
+    }
 
 
     // extract features (feature by convention: label, progress, end_at)
@@ -444,7 +496,7 @@ Dashboard iotek
 
 
         const array_type_end_at = my_array.map((value, index, arr) => {
-            return value['end_at'].split(' ')[0]
+            return value['end_at'].split('/project/update/ ')[0]
         })
 
         return [array_type_labels, array_type_progress, array_type_end_at]

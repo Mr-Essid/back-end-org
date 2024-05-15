@@ -93,7 +93,8 @@ async def get_projects_of_current_user(page: int = 1, all_working_one: bool = Fa
     page = (page - 1) * 15
     department_id_of_current_user = current_user.get(schemes.User.ID_DEPARTMENT)
     query = {
-        schemes.Project.DEPARTMENT_ID: department_id_of_current_user
+        schemes.Project.DEPARTMENT_ID: department_id_of_current_user,
+        schemes.Project.IS_ACTIVE: True
     }
 
     if all_working_one:

@@ -194,7 +194,6 @@ async def get_current(current_user: dict = Depends(get_current_user)):
     user_as_pydantic = from_bson(current_user, EmployerResponse)
     return user_as_pydantic
 
-
 @employer_route.get('/{id_user}', tags=Employer_access)
 async def employer_by_id(id_user: str, current_user=Depends(get_current_user)):
     is_bson_id(id_user)

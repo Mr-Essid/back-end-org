@@ -173,7 +173,7 @@
             <div class="table-responsive">
 
         
-            <table class="table table-hover" style="background-color: transparent;">
+            <table class="table" style="background-color: transparent;">
                 <thead>
                     <tr>
                         <th>
@@ -201,6 +201,9 @@
                         </th>
                         <th>
                             Review
+                        </th>
+                        <th>
+                            Delete
                         </th>
 
                     </tr>
@@ -245,6 +248,12 @@
                                 edit
                             </a>
                         </td>
+
+                        <td>
+                                <button  class="btn btn-danger" data-bs-target="#confirmationDeleteProject" data-bs-toggle="modal">
+                                    delete
+                                </button>                            
+                        </td>
                     </tr>
 
                     {% endfor %}
@@ -253,7 +262,6 @@
             </table>
 
             </div>
-
         </div>
     </div>
 
@@ -388,6 +396,29 @@
     </div>
   </div>
 
+
+
+  <div class="modal fade" id="confirmationDeleteProject" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="confirmationDeleteProject-up" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Note</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                delete this project, this action cannot undone
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form action="#" method="post">
+                    <button type="submit" class="btn btn-info" id="upgrade" data-bs-dismiss="modal" >Understood</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock body %}
 
 
@@ -510,6 +541,16 @@
 
                 if(content == 'a-employer') {
                     message.innerHTML = "Employer Added " + message_
+                    ok = true
+                }
+
+                if(content == 'employer-deactivated') {
+                    message.innerHTML = "Employer Deactivated " + message_
+                    ok = true
+                }
+
+                if(content == 'employer-deactivate') {
+                    message.innerHTML = "Employer Deactivate " + message_
                     ok = true
                 }
 
