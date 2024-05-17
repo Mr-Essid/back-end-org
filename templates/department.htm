@@ -250,7 +250,7 @@
                         </td>
 
                         <td>
-                                <button  class="btn btn-danger" data-bs-target="#confirmationDeleteProject" data-bs-toggle="modal">
+                                <button id="project-delete-trigger"  class="btn btn-danger" data-bs-target="#confirmationDeleteProject" data-bs-toggle="modal" data-bs-id="{{ project.id_ }}">
                                     delete
                                 </button>                            
                         </td>
@@ -273,7 +273,7 @@
             {# first table historys #}
             <div class="d-flex justify-content-between w-100 mb-4 align-items-center">
                 <h4 class="mb-0">
-                    historys
+                    histories
                 </h4>
             </div>
 
@@ -411,9 +411,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <form action="#" method="post">
-                    <button type="submit" class="btn btn-info" id="upgrade" data-bs-dismiss="modal" >Understood</button>
-                </form>
+                <a class="btn btn-danger" id="delete-project" href="#">
+                    Delete Project
+                </a>
             </div>
         </div>
     </div>
@@ -439,7 +439,9 @@
         }
         )
 
-        console.log(map_)
+
+    
+                console.log(map_)
 
         if (map_.get('section')) {
             value = map_.get('section')
@@ -486,6 +488,12 @@
             }
 
         }
+
+
+
+
+        
+
 
 
         let state = map_.get('status')
@@ -554,6 +562,12 @@
                     ok = true
                 }
 
+
+                if(content == 'project-deleted') {
+                    message.innerHTML = "Project Deleted " + message_
+                    ok = true
+                }
+
                 if(ok)
                 container.classList.remove('d-none')
                 
@@ -563,6 +577,27 @@
         }
 
     }
+
+
+
+
+    const exampleModal = document.getElementById('confirmationDeleteProject')
+
+
+    if (exampleModal) {
+
+        exampleModal.addEventListener('show.bs.modal', event => {
+            // Button that triggered the modal
+            const button = event.relatedTarget
+
+            console.log('this function has been called')
+
+            const recipient = button.getAttribute('data-bs-id')
+            let delete_project = document.getElementById("delete-project")            
+            delete_project.setAttribute('href', `/admin/project/delete/{{ department.department_identification }}/${recipient}`)
+        })
+        }
+
 
 
     document.getElementById('employer-name').addEventListener('keyup', (e) => {

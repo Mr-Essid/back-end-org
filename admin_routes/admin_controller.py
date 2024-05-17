@@ -223,13 +223,13 @@ async def get_secure_history(request: Request, current_admin: Annotated[tuple | 
 
     redirect_path = request.url_for("login").__str__()
 
-    redirect_path = request.url_for("login").__str__()
 
     if current_admin is None:
         return RedirectResponse(
             redirect_path + '?state=x-error-n-0',
             status_code=status.HTTP_302_FOUND
         )
+
 
     status_, content = current_admin
 
@@ -241,7 +241,7 @@ async def get_secure_history(request: Request, current_admin: Annotated[tuple | 
 
     # end of pbc
 
-    history_of_place_a = await db.get_collection(Collections.HISTORY_SECURE).find().to_list(None)
+    history_of_place_a = await db.get_collection(Collections.HISTORY_SECURE).find().sort({HistorySecureS.DATE_TIME: -1}).to_list(None)
     pydantic_list = list(map(lambda item: from_bson(item, HistorySecureResponse), history_of_place_a))
 
     return templates.TemplateResponse(request=request, name='history_secure.htm', context={
@@ -951,3 +951,38 @@ async def deactiveEmployer(id_dep: int,employer_id: str, request: Request, curre
                 redirectPath, status_code=status.HTTP_302_FOUND
         )
     
+
+
+
+
+@admin_route.get('/project/delete/{dep_id}/{project_id}', name='delete-project')
+async def delete_project(request: Request, dep_id: int, project_id: str, current_admin = Depends(getCurrentAdmin)):
+
+    is_active, admin = current_admin
+    
+
+    if not is_active:
+        return RedirectResponse(request.url_for('login').include_query_params(status = admin.get('status')))
+
+    
+    if not ObjectId.is_valid(project_id):
+        return RedirectResponse(request.url_for('login').include_query_params(status = 'invalid url'))
+
+    
+    delete_sessions_of_project = await db.get_collection(Collections.PROJECT).update_one({ Project.ID_: ObjectId(project_id) }, { '$set' : {Project.IS_ACTIVE: False}})
+
+     
+    redirectPath = request.url_for('department', department_id = dep_id)
+
+
+    if delete_sessions_of_project.modified_count > 0:
+        redirectPath = redirectPath.include_query_params(status = 'success',content='project-deleted',  section = 'x-turn-p')
+    else:
+        redirectPath = redirectPath.include_query_params(status = 'error', content='project-deleted', section = 'x-turn-p')
+
+
+    
+    
+    return RedirectResponse(
+                redirectPath, status_code=status.HTTP_302_FOUND
+        )

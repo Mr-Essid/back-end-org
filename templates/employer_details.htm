@@ -279,8 +279,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                you have to know that if you will get upgrade this othere employer will get downgrade
 
+                {% if employer.role == 'DEPARTMENT_MANAGER'  %}
+                You need to know that this action will enhance the image of the department manager.
+                {% else %}
+                It’s important to understand that if you upgrade this employee, another employee will be downgraded.
+                {% endif %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -392,7 +396,7 @@
             var data = new FormData()
             data.append('file_', file)
             console.log(file.size);
-            const response = await fetch("https://AmineEssid.pythonanywhere.com/resolve_image", {
+            const response = await fetch("https://essid101010.eu.pythonanywhere.com/resolve_image", {
                 method: "POST",
                 headers: {
                     'access-control-allow-credentials': true

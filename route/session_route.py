@@ -184,8 +184,7 @@ async def activeSession(id_session: str, activation_state: SessionState, current
             {schemes.Session.ISALIVE: True, schemes.Session.D_ID: session_on_question.get(schemes.Session.D_ID)},
             {'$set': {schemes.Session.ISALIVE: False}})  # terminate activated session while this one is alive
 
-        fast_mqtt.publish(f'/session/{current_user.get(schemes.User.ID_DEPARTMENT)}',
-                          'has been activated'.encode())
+        
 
     query = {
         schemes.Session.ISALIVE: True,
@@ -195,9 +194,16 @@ async def activeSession(id_session: str, activation_state: SessionState, current
         query.update({schemes.Session.ISALIVE: False})
         query.update({schemes.Session.UPDATED_AT: datetime.datetime.now()})
 
+    
+    
+
     res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
                                                                   {'$set': query})
 
+
+    fast_mqtt.publish(f'/session/{current_user.get(schemes.User.ID_DEPARTMENT)}',
+                          'has been activated'.encode())
+    
     return {
         'state': 'session activated successfully'
     } if res.modified_count > 0 else {
