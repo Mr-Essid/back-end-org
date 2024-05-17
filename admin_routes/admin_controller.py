@@ -132,11 +132,11 @@ async def main_dashboard(request: Request, current_admin: Annotated[tuple | None
     current_admin = content
 
     electrical_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 1, Project.IS_WORKING_ON: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 1, Project.IS_WORKING_ON: True, Project.IS_ACTIVE: True}).to_list(None)
     it_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 2, Project.IS_WORKING_ON: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 2, Project.IS_WORKING_ON: True,  Project.IS_ACTIVE: True}).to_list(None)
     managment_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 3, Project.IS_WORKING_ON: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 3, Project.IS_WORKING_ON: True,  Project.IS_ACTIVE: True}).to_list(None)
 
     electrical_department_projects = list(
         map(lambda item: from_bson(item, model.Project.Project).model_dump(), electrical_department_projects)
