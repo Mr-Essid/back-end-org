@@ -1,5 +1,7 @@
 import datetime
 from bson import ObjectId
+import bson
+import bson.regex
 from fastapi import APIRouter, HTTPException, Depends
 from starlette import status
 import schemes
@@ -207,6 +209,7 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
     check_permission(current_user, [Roles.D_MANAGER])
     data_ = update_fa_model.model_dump(by_alias=True)
     data_ = get_filled_only(data_)
+
     data_.update({schemes.Project.UPDATE_AT: datetime.datetime.now()})
     id_ = data_.pop('_id')
     is_bson_id(id_)
@@ -228,3 +231,18 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
         fast_mqtt.publish(f'/project/update/{project_.get(schemes.Project.DEPARTMENT_ID)}', id_)
 
     return state
+
+
+@project_route.get('/keyword/search')
+async def search(q: str, current_user: dict = Depends(get_current_user)):
+    keyWordWithoutSp = filter(lambda char: char.isalnum(), list(q))
+    keyWordWithoutSp = ''.join(keyWordWithoutSp)
+    regx = bson.regex.Regex(keyWordWithoutSp)
+
+    project_by_keyword = await db.get_collection(Collections.PROJECT).find(
+        {schemes.Project.LABEL: regx, schemes.Project.IS_ACTIVE: True, schemes.Project.DEPARTMENT_ID: current_user.get(schemes.User.ID_DEPARTMENT)}).to_list(
+        None)
+
+    pythonList = list(map(lambda item: from_bson(item, ProjectResponse), project_by_keyword))
+
+    return pythonList

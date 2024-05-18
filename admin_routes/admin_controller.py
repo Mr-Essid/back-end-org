@@ -893,14 +893,12 @@ async def search_project_by_label(request: Request,q: str, collection_name: Coll
 
     keywords = list(filter(lambda keyword_: keyword_.isalnum(), keywords))
     final_keyword = " ".join(keywords).strip()
-    print(final_keyword)
     regx = bson.regex.Regex(final_keyword)
 
     field_to_search, model__, department_identifier = (
         Project.LABEL, model.Project.ProjectResponse, Project.DEPARTMENT_ID) if collection_name == Collections.PROJECT else (
         User.FULL_NAME, model.Employer.EmployerResponse, User.ID_DEPARTMENT)
 
-    print(field_to_search, model__)
     res = await db.get_collection(collection_name).find({field_to_search: regx, department_identifier: dep_identifier, 'is_active': True }).to_list(6)
     res = list(map(lambda item: from_bson(item, model__), res))
 

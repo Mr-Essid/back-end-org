@@ -17,8 +17,6 @@ from .login_route import get_current_user
 
 history_route = APIRouter(prefix='/history')
 
-
-
 """
     as I said before there is no update in the  history, why we even need :!
     all raspberry pi action need to be as fast as possible cause of realtime constraint in the embedded systems    
@@ -70,21 +68,19 @@ async def get_history_of_employers_five_days_ago(current_user: dict = Depends(ge
         {'$sort': {'_id': -1}},
     ]).to_list(5)
 
-    pydantic_list = list(map(lambda item: from_bson(item,  CountDateHistory), list_of_bson_object))
+    pydantic_list = list(map(lambda item: from_bson(item, CountDateHistory), list_of_bson_object))
     return pydantic_list
 
 
 @history_route.get('/departments/current_user/statistic_latest_days/{department}')
-async def get_history_of_employers_latest_days_ago(department: int,current_user: dict = Depends(getCurrentAdmin)):
-
+async def get_history_of_employers_latest_days_ago(department: int, current_user: dict = Depends(getCurrentAdmin)):
     list_of_bson_object = await db.get_collection(Collections.HISTORY_DEPARTMENT).aggregate([
         {'$match': {HistoryDepartmentS.DEPARTMENT_ID: department}},
         {'$group': {'_id': {'$dateToString': {'format': "%Y-%m-%d", 'date': "$date_time"}}, 'count': {'$sum': 1}}},
         {'$sort': {'_id': -1}},
     ]).to_list(1)
 
-
-    pydantic_list = list(map(lambda item: from_bson(item,  CountDateHistory), list_of_bson_object))
+    pydantic_list = list(map(lambda item: from_bson(item, CountDateHistory), list_of_bson_object))
     return pydantic_list
 
 
@@ -93,7 +89,8 @@ async def get_history_of_department(department_id: int, page: int = 1, current_u
     check_permission_history(current_user, [Roles.ADMIN])
     page = (page - 1) * 15
     list_with_objectId = await db.get_collection(Collections.HISTORY_DEPARTMENT).find(
-        {HistoryDepartmentS.DEPARTMENT_ID: department_id}).sort({schemes.HistoryDepartmentS.DATE_TIME: -1}).skip(page).limit(15).to_list(15)
+        {HistoryDepartmentS.DEPARTMENT_ID: department_id}).sort({schemes.HistoryDepartmentS.DATE_TIME: -1}).skip(
+        page).limit(15).to_list(15)
     list_without_objectId = list(map(lambda item: from_bson(item, HistoryDepartment), list_with_objectId))
     return list_without_objectId
 
@@ -102,7 +99,8 @@ async def get_history_of_department(department_id: int, page: int = 1, current_u
 async def get_history_secure(page: int = 1, current_user: dict = Depends(get_current_user)):
     check_permission_history(current_user, [Roles.ADMIN])
     page = (page - 1) * 15
-    list_ = await db.get_collection(Collections.HISTORY_SECURE).find().sort({schemes.HistorySecureS.DATE_TIME: -1}).skip(page).limit(15).to_list(
+    list_ = await db.get_collection(Collections.HISTORY_SECURE).find().sort(
+        {schemes.HistorySecureS.DATE_TIME: -1}).skip(page).limit(15).to_list(
         15)  # this list has ObjectId !
     list_without_object_id = list(map(lambda item: from_bson(item, HistorySecure), list_))
     return list_without_object_id
@@ -132,10 +130,20 @@ async def get_manager_history(manager_id: str, page: int = 1, current_user: dict
     return list_without_object_id
 
 
+@history_route.get("/date")
+async def get_history_by_date(required_date: datetime.datetime, current_user=Depends(get_current_user)):
+    id_ = current_user.get(schemes.User.ID_)
+
+    start_date = required_date.replace(hour=0, second=0, minute=0)
+    end_date = required_date.replace(hour=23, second=59, minute=59)
+
+    history_current_user_with_date = await db.get_collection(Collections.HISTORY_DEPARTMENT). \
+        find(
+        {schemes.HistoryDepartmentS.EMPLOYER_ID: id_,
+         schemes.HistoryDepartmentS.DATE_TIME: {'$gt': start_date, '$lt': end_date}}). \
+        to_list(None)
 
 
+    pydantic_list = list(map(lambda item: from_bson(item, HistoryDepartment), history_current_user_with_date))
 
-
-
-
-# history of current_user
+    return pydantic_list
