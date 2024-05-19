@@ -1,12 +1,15 @@
 import datetime
+from typing import Annotated
 
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends
 from starlette import status
 
+import model.Employer
 from MQTTFastAPI import fast_mqtt
+from model import Employer
 from model.Employer import Roles
-from model.Session import SessionState, SessionResponseAfter, SessionRequest, SessionResponseBefore, SessionUpdate
+from model.Session import SessionState, SessionResponseAfter, SessionUpdate
 from database_config.configdb import db
 from database_config.Collections import Collections
 from utiles import from_bson, is_bson_id, get_filled_only
@@ -110,8 +113,6 @@ async def getSessionsOfProject(project_id: str, page: int = 1, current_user=Depe
     return listPython
 
 
-
-
 @sessionRoutes.put('/')
 async def updateSession(session_to_update: SessionUpdate, current_user=Depends(get_current_user)):
     check_permission(current_user, [Roles.D_MANAGER, Roles.ADMIN])
@@ -140,13 +141,9 @@ async def updateSession(session_to_update: SessionUpdate, current_user=Depends(g
             'session': from_bson(new_session, SessionResponseAfter)
         }
 
-
-
     return {
         'status': 'No change at All'
     }
-
-
 
 
 @sessionRoutes.get('/last_host')
@@ -167,6 +164,8 @@ async def get_last_hot_session_cu(current_user: dict = Depends(get_current_user)
 
 @sessionRoutes.put('/active/{id_session}')
 async def activeSession(id_session: str, activation_state: SessionState, current_user=Depends(get_current_user)):
+
+
     is_bson_id(id_session)
     session_on_question = await db.get_collection(Collections.SESSION).find_one(
         {schemes.Session.ID_: ObjectId(id_session)})
@@ -177,6 +176,8 @@ async def activeSession(id_session: str, activation_state: SessionState, current
             detail=f'No Session With Id {id_session}'
         )
 
+
+
     creator_id = session_on_question.get(schemes.Session.D_ID)
     check_for_contributed_resources(current_user, creator_id)
     if activation_state == SessionState.ACTIVE:
@@ -184,28 +185,47 @@ async def activeSession(id_session: str, activation_state: SessionState, current
             {schemes.Session.ISALIVE: True, schemes.Session.D_ID: session_on_question.get(schemes.Session.D_ID)},
             {'$set': {schemes.Session.ISALIVE: False}})  # terminate activated session while this one is alive
 
-        
-
     query = {
         schemes.Session.ISALIVE: True,
         schemes.Session.IS_DONE: True
     }
+
     if activation_state == SessionState.DIS_ACTIVE:
         query.update({schemes.Session.ISALIVE: False})
         query.update({schemes.Session.UPDATED_AT: datetime.datetime.now()})
 
-    
-    
-
     res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
                                                                   {'$set': query})
 
-
     fast_mqtt.publish(f'/session/{current_user.get(schemes.User.ID_DEPARTMENT)}',
-                          'has been activated'.encode())
-    
+                      'has been activated'.encode())
+
     return {
         'state': 'session activated successfully'
     } if res.modified_count > 0 else {
         'state': 'some things went wrong'
     }
+
+
+@sessionRoutes.delete('/{session_id}')
+async def delete_session(session_id: str, current_user: Annotated[dict, Depends(get_current_user)]):
+    check_permission(current_user, [Roles.D_MANAGER])
+    is_bson_id(session_id)
+    current_user_department = current_user.get(schemes.User.ID_DEPARTMENT)
+    cont_res = await db.get_collection(Collections.SESSION).delete_one({schemes.Session.ID_: ObjectId(session_id), schemes.Session.D_ID: current_user_department})
+
+    if cont_res.deleted_count > 0:
+        db.get_collection(Collections.MESSAGE).delete_many(   # we don't have to await here
+            {schemes.Message.SESSION_ID: session_id})
+
+        fast_mqtt.publish(f'/session/{current_user.get(schemes.User.ID_DEPARTMENT)}',
+                          'has been activated'.encode())
+
+        return {
+            'Status': 'Session Deleted Successfully'
+        }
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Request Permitted By The Owner Only"
+    )

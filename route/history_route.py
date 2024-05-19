@@ -143,7 +143,6 @@ async def get_history_by_date(required_date: datetime.datetime, current_user=Dep
          schemes.HistoryDepartmentS.DATE_TIME: {'$gt': start_date, '$lt': end_date}}). \
         to_list(None)
 
-
     pydantic_list = list(map(lambda item: from_bson(item, HistoryDepartment), history_current_user_with_date))
 
     return pydantic_list

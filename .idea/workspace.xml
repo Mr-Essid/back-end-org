@@ -9,7 +9,9 @@
       <change beforePath="$PROJECT_DIR$/admin_routes/admin_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/admin_routes/admin_controller.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/crypto.key" beforeDir="false" afterPath="$PROJECT_DIR$/crypto.key" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route/history_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/history_route.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/route/project_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/project_route.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/route/session_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/route/session_route.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/department.htm" beforeDir="false" afterPath="$PROJECT_DIR$/templates/department.htm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/history_secure.htm" beforeDir="false" afterPath="$PROJECT_DIR$/templates/history_secure.htm" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

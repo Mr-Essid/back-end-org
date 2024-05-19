@@ -877,10 +877,9 @@ def logout_(request: Request, current_admin: Annotated[tuple | None, Depends(get
 
 # search part ( all search methods by labels ) # no need to authenticated for this process
 
-@admin_route.get("/search", name='search')
+@admin_route.get("/search", name='search-admin')
 async def search_project_by_label(request: Request,q: str, collection_name: Collections,dep_identifier: int, current_admin=Depends(getCurrentAdmin)):
     # no validation of current authenticated
-
     if collection_name not in [Collections.PROJECT, Collections.USER]:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="problem with your query"

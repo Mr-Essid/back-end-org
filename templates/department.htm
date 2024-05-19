@@ -609,7 +609,7 @@
         fetchedItemsContainer.innerHTML  = ""
         fetchedItemsContainer.innerText  = ""
         if(e.target.value !== ""){
-            fetch("{{ url_for('search').include_query_params(collection_name='User') }}" + `&q=${e.target.value}&dep_identifier={{ id_dep }}`)
+            fetch("{{ url_for('search-admin').include_query_params(collection_name='User') }}" + `&q=${e.target.value}&dep_identifier={{ id_dep }}`)
             .then(
                 (data) => data.json()
             ).then(
@@ -675,7 +675,7 @@ document.getElementById('project-name').addEventListener('keyup', (e) => {
     fetchedItemsContainer.innerHTML  = ""
     fetchedItemsContainer.innerText  = ""
     if(e.target.value !== ""){
-        fetch("{{ url_for('search').include_query_params(collection_name='Project') }}" + `&q=${e.target.value}&dep_identifier={{ id_dep }}`)
+        fetch("{{ url_for('search-admin').include_query_params(collection_name='Project') }}" + `&q=${e.target.value}&dep_identifier={{ id_dep }}`)
         .then(
             (data) => data.json()
         ).then(
