@@ -134,9 +134,9 @@ async def main_dashboard(request: Request, current_admin: Annotated[tuple | None
     electrical_department_projects = await db.get_collection(Collections.PROJECT).find(
         {Project.DEPARTMENT_ID: 1, Project.IS_WORKING_ON: True, Project.IS_ACTIVE: True}).to_list(None)
     it_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 2, Project.IS_WORKING_ON: True,  Project.IS_ACTIVE: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 2, Project.IS_WORKING_ON: True, Project.IS_ACTIVE: True}).to_list(None)
     managment_department_projects = await db.get_collection(Collections.PROJECT).find(
-        {Project.DEPARTMENT_ID: 3, Project.IS_WORKING_ON: True,  Project.IS_ACTIVE: True}).to_list(None)
+        {Project.DEPARTMENT_ID: 3, Project.IS_WORKING_ON: True, Project.IS_ACTIVE: True}).to_list(None)
 
     electrical_department_projects = list(
         map(lambda item: from_bson(item, model.Project.Project).model_dump(), electrical_department_projects)
@@ -223,13 +223,11 @@ async def get_secure_history(request: Request, current_admin: Annotated[tuple | 
 
     redirect_path = request.url_for("login").__str__()
 
-
     if current_admin is None:
         return RedirectResponse(
             redirect_path + '?state=x-error-n-0',
             status_code=status.HTTP_302_FOUND
         )
-
 
     status_, content = current_admin
 
@@ -241,7 +239,8 @@ async def get_secure_history(request: Request, current_admin: Annotated[tuple | 
 
     # end of pbc
 
-    history_of_place_a = await db.get_collection(Collections.HISTORY_SECURE).find().sort({HistorySecureS.DATE_TIME: -1}).to_list(None)
+    history_of_place_a = await db.get_collection(Collections.HISTORY_SECURE).find().sort(
+        {HistorySecureS.DATE_TIME: -1}).to_list(None)
     pydantic_list = list(map(lambda item: from_bson(item, HistorySecureResponse), history_of_place_a))
 
     return templates.TemplateResponse(request=request, name='history_secure.htm', context={
@@ -302,12 +301,10 @@ async def department_(department_id: int, request: Request,
     
     """
 
-
     details_employer_url = f'${request.base_url}/employer/details/'
     details_project_url = f'${request.base_url}/employer/details/'
 
     redirect_path = request.url_for("login").__str__()
-
 
     if current_admin is None:
         return RedirectResponse(
@@ -378,7 +375,6 @@ async def add_employer(request: Request, dep_identifier: int,
 
     redirect_path = request.url_for("login").__str__()
 
-
     if current_admin is None:
         return RedirectResponse(
             redirect_path + '?state=x-error-n-0',
@@ -426,7 +422,6 @@ async def store_employer(request: Request,
     #        boilerplate code of authentication :)
 
     redirect_path = request.url_for("login").__str__()
-
 
     if current_admin is None:
         return RedirectResponse(
@@ -495,7 +490,6 @@ async def get_employer_details(id_: str, request: Request,
 
     redirect_path = request.url_for("login").__str__()
 
-
     if current_admin is None:
         return RedirectResponse(
             redirect_path + '?state=x-error-n-0',
@@ -519,7 +513,6 @@ async def get_employer_details(id_: str, request: Request,
         )
 
     employer: dict = await db.get_collection(Collections.USER).find_one({'_id': ObjectId(id_)})
-    
 
     if employer is None:
         return RedirectResponse(
@@ -531,9 +524,10 @@ async def get_employer_details(id_: str, request: Request,
         {DepartmentS.DEPARTMENT_IDENTIFICATION: employer.get(User.ID_DEPARTMENT)})
     department_ = from_bson(department_, Department)
 
-    history_of_user = await db.get_collection(Collections.HISTORY_DEPARTMENT).find({HistoryDepartmentS.EMPLOYER_ID: str(employer.get(User.ID_)) }).to_list(None)
+    history_of_user = await db.get_collection(Collections.HISTORY_DEPARTMENT).find(
+        {HistoryDepartmentS.EMPLOYER_ID: str(employer.get(User.ID_))}).to_list(None)
 
-    history_of_user = list(map(lambda item: from_bson(item, model.History.HistoryDepartment),history_of_user))
+    history_of_user = list(map(lambda item: from_bson(item, model.History.HistoryDepartment), history_of_user))
 
     response = templates.TemplateResponse(
         request,
@@ -544,7 +538,7 @@ async def get_employer_details(id_: str, request: Request,
             'id_': id_,
             'admin': current_admin,
             'department': department_,
-            'history' : history_of_user
+            'history': history_of_user
         }
 
     )
@@ -591,18 +585,12 @@ async def update_manager(request: Request, face_coding: Annotated[str, Form()], 
     )
 
     if not res_.modified_count == 1:
-        return "None"
+        return None
 
     res_of_update = await db.get_collection(Collections.USER).update_many(
         {User.ROLE: Roles.D_MANAGER, User.ID_DEPARTMENT: department, User.ID_: {'$ne': ObjectId(employer)}},
         {'$set': {User.ROLE: Roles.EMPLOYER}}
     )
-
-    if res_of_update.modified_count == 0:
-        return "None of You"
-
-    if res_.modified_count == 0:
-        return redirectError
 
     return RedirectResponse(
         request.url_for('employer_details', id_=employer).include_query_params(success_update='true'),
@@ -878,15 +866,13 @@ def logout_(request: Request, current_admin: Annotated[tuple | None, Depends(get
 # search part ( all search methods by labels ) # no need to authenticated for this process
 
 @admin_route.get("/search", name='search-admin')
-async def search_project_by_label(request: Request,q: str, collection_name: Collections,dep_identifier: int, current_admin=Depends(getCurrentAdmin)):
+async def search_project_by_label(request: Request, q: str, collection_name: Collections, dep_identifier: int,
+                                  current_admin=Depends(getCurrentAdmin)):
     # no validation of current authenticated
     if collection_name not in [Collections.PROJECT, Collections.USER]:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="problem with your query"
         )
-
-
-
 
     keywords = q.split(" ")
 
@@ -895,15 +881,15 @@ async def search_project_by_label(request: Request,q: str, collection_name: Coll
     regx = bson.regex.Regex(final_keyword)
 
     field_to_search, model__, department_identifier = (
-        Project.LABEL, model.Project.ProjectResponse, Project.DEPARTMENT_ID) if collection_name == Collections.PROJECT else (
+        Project.LABEL, model.Project.ProjectResponse,
+        Project.DEPARTMENT_ID) if collection_name == Collections.PROJECT else (
         User.FULL_NAME, model.Employer.EmployerResponse, User.ID_DEPARTMENT)
 
-    res = await db.get_collection(collection_name).find({field_to_search: regx, department_identifier: dep_identifier, 'is_active': True }).to_list(6)
+    res = await db.get_collection(collection_name).find(
+        {field_to_search: regx, department_identifier: dep_identifier, 'is_active': True}).to_list(6)
     res = list(map(lambda item: from_bson(item, model__), res))
 
     return res
-
-
 
 
 @admin_route.get('/project/{id_project}')
@@ -913,7 +899,7 @@ async def get_project_by_id(id_project: str, current_user: dict = Depends(getCur
 
     if not current_user[0]:
         return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='session complate')
-    
+
     project_as_bison = await db.get_collection(Collections.PROJECT).find_one({'_id': bson_id})
 
     if project_as_bison is None:
@@ -926,60 +912,51 @@ async def get_project_by_id(id_project: str, current_user: dict = Depends(getCur
 
 
 @admin_route.post("/employer/{id_dep}/deactive/{employer_id}", name='delete-employer')
-async def deactiveEmployer(id_dep: int,employer_id: str, request: Request, current_admin = Depends(getCurrentAdmin)):
+async def deactiveEmployer(id_dep: int, employer_id: str, request: Request, current_admin=Depends(getCurrentAdmin)):
     is_active, admin = current_admin
 
-    
     if not is_active:
-        return RedirectResponse(request.url_for('login').include_query_params(status = admin.get('status')))
+        return RedirectResponse(request.url_for('login').include_query_params(status=admin.get('status')))
 
-    employer_suspended = await db.get_collection(Collections.USER).update_one({User.ID_: ObjectId(employer_id), User.ROLE: {'$ne': Roles.ADMIN}, User.ROLE: {'$ne': Roles.D_MANAGER}}, { '$set' : {User.IS_ACTIVE: False}})
-    
-    redirectPath = request.url_for('department', department_id = id_dep)
+    employer_suspended = await db.get_collection(Collections.USER).update_one(
+        {User.ID_: ObjectId(employer_id), User.ROLE: {'$ne': Roles.ADMIN}, User.ROLE: {'$ne': Roles.D_MANAGER}},
+        {'$set': {User.IS_ACTIVE: False}})
 
+    redirectPath = request.url_for('department', department_id=id_dep)
 
     if employer_suspended.modified_count > 0:
-        redirectPath = redirectPath.include_query_params(status = 'success',content='employer-deactivated',  section = 'x-turn-e')
+        redirectPath = redirectPath.include_query_params(status='success', content='employer-deactivated',
+                                                         section='x-turn-e')
     else:
-        redirectPath = redirectPath.include_query_params(status = 'error', content='employer-deactivate', section = 'x-turn-e')
-
+        redirectPath = redirectPath.include_query_params(status='error', content='employer-deactivate',
+                                                         section='x-turn-e')
 
     return RedirectResponse(
-                redirectPath, status_code=status.HTTP_302_FOUND
-        )
-    
-
-
+        redirectPath, status_code=status.HTTP_302_FOUND
+    )
 
 
 @admin_route.get('/project/delete/{dep_id}/{project_id}', name='delete-project')
-async def delete_project(request: Request, dep_id: int, project_id: str, current_admin = Depends(getCurrentAdmin)):
-
+async def delete_project(request: Request, dep_id: int, project_id: str, current_admin=Depends(getCurrentAdmin)):
     is_active, admin = current_admin
-    
 
     if not is_active:
-        return RedirectResponse(request.url_for('login').include_query_params(status = admin.get('status')))
+        return RedirectResponse(request.url_for('login').include_query_params(status=admin.get('status')))
 
-    
     if not ObjectId.is_valid(project_id):
-        return RedirectResponse(request.url_for('login').include_query_params(status = 'invalid url'))
+        return RedirectResponse(request.url_for('login').include_query_params(status='invalid url'))
 
-    
-    delete_sessions_of_project = await db.get_collection(Collections.PROJECT).update_one({ Project.ID_: ObjectId(project_id) }, { '$set' : {Project.IS_ACTIVE: False}})
+    delete_sessions_of_project = await db.get_collection(Collections.PROJECT).update_one(
+        {Project.ID_: ObjectId(project_id)}, {'$set': {Project.IS_ACTIVE: False}})
 
-     
-    redirectPath = request.url_for('department', department_id = dep_id)
-
+    redirectPath = request.url_for('department', department_id=dep_id)
 
     if delete_sessions_of_project.modified_count > 0:
-        redirectPath = redirectPath.include_query_params(status = 'success',content='project-deleted',  section = 'x-turn-p')
+        redirectPath = redirectPath.include_query_params(status='success', content='project-deleted',
+                                                         section='x-turn-p')
     else:
-        redirectPath = redirectPath.include_query_params(status = 'error', content='project-deleted', section = 'x-turn-p')
+        redirectPath = redirectPath.include_query_params(status='error', content='project-deleted', section='x-turn-p')
 
-
-    
-    
     return RedirectResponse(
-                redirectPath, status_code=status.HTTP_302_FOUND
-        )
+        redirectPath, status_code=status.HTTP_302_FOUND
+    )
