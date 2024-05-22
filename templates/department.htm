@@ -524,6 +524,9 @@
             
             }
             content = map_.get('content')
+
+            console.log(content);
+            
             if(content && message_.length != 0) {
                 let message = document.getElementById('alert-title')
                 let ok = false
@@ -566,6 +569,10 @@
                 if(content == 'project-deleted') {
                     message.innerHTML = "Project Deleted " + message_
                     ok = true
+                }
+                if(!ok && content.length > 0){
+                    message.innerHTML =  message_
+                    ok = true;
                 }
 
                 if(ok)

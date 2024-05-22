@@ -16,6 +16,25 @@ Add Project IOTEK
 
 
 <div class="container mt-5 mb-4">
+    
+    <div class="mt-3 d-none" id="alert-container">
+        <div class="alert d-flex align-items-center justify-content-between alert-danger " id="alert-statue"
+            role="alert">
+            <div class="d-flex align-items-center">
+                <div style="width: 28px; max-width: 100%;" id="alert-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                      </svg>
+                </div>
+                <p class="mb-0" id="alert-title">
+
+                </p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close-button"></button>
+        </div>
+    </div>
+    
     <div class="header border-bottom">
         <h2>
             Add Project
@@ -25,6 +44,8 @@ Add Project IOTEK
             Add Project to <b>{{ department.name_department }}</b>
         </p>
     </div>
+
+    
 </div>
 
 
@@ -140,6 +161,41 @@ Add Project IOTEK
 
 
     }
+
+
+    if (window.location.search.length > 0) {
+
+keys_value_paire = window.location.search.substring(1).split('&')
+
+map_ = new Map()
+
+keys_value_paire.forEach((element) => {
+    key_value = element.split('=')
+
+    map_.set(key_value[0], key_value[1])
+}
+)
+
+
+
+        console.log(map_)
+
+        let status = map_.get('status')
+        let content  = map_.get('content')
+        if(status === 'error' && content.length > 0) {
+            
+            document.getElementById("alert-title").innerHTML = content.split('+').join(' ') ;
+            document.getElementById('alert-container').classList.remove('d-none');
+        }
+
+        document.getElementById('close-button').addEventListener('click', (e) =>{
+            document.getElementById('alert-container').classList.add('d-none');
+        })
+
+
+        
+
+}
 
 </script>
 

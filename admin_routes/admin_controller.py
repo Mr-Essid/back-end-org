@@ -599,7 +599,6 @@ async def update_manager(request: Request, face_coding: Annotated[str, Form()], 
 
 # project routes
 
-## add project
 @admin_route.get('/project/add_view/{dep_id}', name='add_project_view')
 async def add_project_view(request: Request, dep_id: int,
                            current_admin: Annotated[tuple | None, Depends(getCurrentAdmin)]):
@@ -671,7 +670,7 @@ async def add_project_view(request: Request, dep_id: int, project_id: str,
 
     if not ObjectId.is_valid(project_id):
         return RedirectResponse(
-            redirect_path + f'?state=x-error-n-5&error=id-not-valid',
+            redirect_path + f'?state=x-error-n-5&content=unexpected error was occure, we are working to fix it',
             status_code=status.HTTP_302_FOUND
         )
 
@@ -800,29 +799,29 @@ async def add_project_admin(
 
     if current_department is None:
         return RedirectResponse(
-            request.url_for('login').include_query_params(state='error-n0', error='x-error-url'),
+            request.url_for('login').include_query_params(state='error', content='unexpected error was occure, we are working to fix it.'),
             status_code=status.HTTP_302_FOUND
         )
 
     if not string_validate(project_label):
         return RedirectResponse(
-            error_redirect_object.include_query_params(status='error-n2', error='x-error-label-invalid'),
+            error_redirect_object.include_query_params(status='error', content='project label invalid'),
             status_code=status.HTTP_302_FOUND)
 
     if not string_validate(project_client_brand, max=128):
         return RedirectResponse(
-            error_redirect_object.include_query_params(status='error-n2', error='x-error-client_brand-invalid'),
+            error_redirect_object.include_query_params(status='error', content='project client brand invalid'),
             status_code=status.HTTP_302_FOUND
         )
 
     if not string_validate(project_client_location, max=256, include_sepc_char=True):
         return RedirectResponse(
-            error_redirect_object.include_query_params(status='error-n2', error='x-error-client_location-invalid'),
+            error_redirect_object.include_query_params(status='error', content='project client location invalid'),
             status_code=status.HTTP_302_FOUND)
 
     if project_start_at > project_end_at:
         return RedirectResponse(
-            error_redirect_object.include_query_params(status='error-n2', error='x-error-date-invalid'),
+            error_redirect_object.include_query_params(status='error', content='date invalid'),
             status_code=status.HTTP_302_FOUND)
 
     create_at = datetime.datetime.now()
