@@ -143,14 +143,14 @@ async def add_department_history(history_dep_model: HistoryDepartment, request: 
     api_key = request.headers.get('Authorization')
     await check_permission_pi(api_key)
     data = history_dep_model.model_dump()
-    current_date_time = datetime.now(tz=pytz.timezone('Africa/Tunis'))
+    current_date_time = datetime.now(tz=pytz.timezone('Europe/Jersey'))
     data[HistoryDepartmentS.DATE_TIME] = current_date_time
 
     inserted_id = await db.get_collection(Collections.HISTORY_DEPARTMENT).insert_one(
         data)  # this is the only await should be executed
 
     fast_mqtt.publish(f'/history/dep/{history_dep_model.employer_id}',
-                      str(datetime.now(tz=pytz.timezone('Africa/Tunis'))))
+                      str(datetime.now(tz=pytz.timezone('Europe/Jersey'))))
 
     fast_mqtt.publish(f'/history/depID',
                       str(history_dep_model.department_id))
@@ -164,7 +164,7 @@ async def add_secure_history(history_secure_model: HistorySecure, request: Reque
     api_key: str = request.headers.get('Authorization')
     await check_permission_pi(api_key)
     data = history_secure_model.model_dump()
-    current_date_time = datetime.now(tz=pytz.timezone('Africa/Tunis'))
+    current_date_time = datetime.now(tz=pytz.timezone('Europe/Jersey'))
     data[HistorySecureS.DATE_TIME] = current_date_time
     inserted_id = await db.get_collection(Collections.HISTORY_SECURE).insert_one(
         data)  # this is the only await should be executed
@@ -202,7 +202,7 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
     print(sessionRequest.model_dump(by_alias=True))
     begin_at = sessionRequest.beginAt.strftime(date_format)  # date of session
     estimated_time = sessionRequest.estimatedTimeInHours
-    current_date = datetime.now(tz=pytz.timezone('Africa/Tunis')).strftime(date_format.split('T')[0])
+    current_date = datetime.now(tz=pytz.timezone('Europe/Jersey')).strftime(date_format.split('T')[0])
 
     if begin_at < current_date or estimated_time < 1:
         raise HTTPException(
@@ -211,8 +211,8 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
         )
     department_id = current_user.get(schemes.User.ID_DEPARTMENT)
     department_ep = 'NC'  # Not Connected XD
-    updated_at = datetime.now(tz=pytz.timezone('Africa/Tunis'))
-    created_at = datetime.now(tz=pytz.timezone('Africa/Tunis'))
+    updated_at = datetime.now(tz=pytz.timezone('Europe/Jersey'))
+    created_at = datetime.now(tz=pytz.timezone('Europe/Jersey'))
     dict_of_session = sessionRequest.model_dump(by_alias=True)
     dict_of_session.update({schemes.Session.D_ID: department_id})
     dict_of_session.update({schemes.Session.D_EP: department_ep})
@@ -255,8 +255,8 @@ async def add_project(project_: Project.Project, current_user: dict = Depends(ge
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Bad Department id"
         )
-    json_format.update({'create_at: ': datetime.now(tz=pytz.timezone('Africa/Tunis'))})
-    json_format.update({'update_at': datetime.now(tz=pytz.timezone('Africa/Tunis'))})
+    json_format.update({'create_at: ': datetime.now(tz=pytz.timezone('Europe/Jersey'))})
+    json_format.update({'update_at': datetime.now(tz=pytz.timezone('Europe/Jersey'))})
     id_ = await db.get_collection(Collections.PROJECT).insert_one(json_format)
     bson_return = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_.inserted_id)})
     fast_mqtt.publish(f'/project/add/{project_.department_identification}', str(id_.inserted_id).encode())

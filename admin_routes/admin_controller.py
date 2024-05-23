@@ -466,8 +466,8 @@ async def store_employer(request: Request,
     ).model_dump()
 
     employerRequest.update({
-        'create_at': datetime.datetime.now(tz=pytz.timezone('Africa/Tunis')),
-        'update_at': datetime.datetime.now(tz=pytz.timezone('Africa/Tunis'))
+        'create_at': datetime.datetime.now(tz=pytz.timezone('Europe/Jersey')),
+        'update_at': datetime.datetime.now(tz=pytz.timezone('Europe/Jersey'))
     })
 
     try:
@@ -824,8 +824,8 @@ async def add_project_admin(
             error_redirect_object.include_query_params(status='error', content='date invalid'),
             status_code=status.HTTP_302_FOUND)
 
-    create_at = datetime.datetime.now(tz=pytz.timezone('Africa/Tunis'))
-    update_at = datetime.datetime.now(tz=pytz.timezone('Africa/Tunis'))
+    create_at = datetime.datetime.now(tz=pytz.timezone('Europe/Jersey'))
+    update_at = datetime.datetime.now(tz=pytz.timezone('Europe/Jersey'))
 
     project_model = model.Project.Project(
         label=project_label,

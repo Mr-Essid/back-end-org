@@ -3,6 +3,7 @@ from bson import ObjectId
 import bson
 import bson.regex
 from fastapi import APIRouter, HTTPException, Depends
+import pytz
 from starlette import status
 import schemes
 from database_config.Collections import Collections
@@ -210,7 +211,7 @@ async def update_frequently(update_fa_model: ProjectFU, current_user: dict = Dep
     data_ = update_fa_model.model_dump(by_alias=True)
     data_ = get_filled_only(data_)
 
-    data_.update({schemes.Project.UPDATE_AT: datetime.datetime.now()})
+    data_.update({schemes.Project.UPDATE_AT: datetime.datetime.now(tz=pytz.timezone('Europe/Jersey'))})
     id_ = data_.pop('_id')
     is_bson_id(id_)
     project_ = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_)})

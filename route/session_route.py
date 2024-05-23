@@ -3,6 +3,7 @@ from typing import Annotated
 
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends
+import pytz
 from starlette import status
 
 import model.Employer
@@ -192,7 +193,7 @@ async def activeSession(id_session: str, activation_state: SessionState, current
 
     if activation_state == SessionState.DIS_ACTIVE:
         query.update({schemes.Session.ISALIVE: False})
-        query.update({schemes.Session.UPDATED_AT: datetime.datetime.now()})
+        query.update({schemes.Session.UPDATED_AT: datetime.datetime.now(tz=pytz.timezone('Europe/Jersey'))})
 
     res = await db.get_collection(Collections.SESSION).update_one({schemes.Session.ID_: ObjectId(id_session)},
                                                                   {'$set': query})
