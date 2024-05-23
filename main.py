@@ -143,7 +143,7 @@ async def add_department_history(history_dep_model: HistoryDepartment, request: 
     api_key = request.headers.get('Authorization')
     await check_permission_pi(api_key)
     data = history_dep_model.model_dump()
-    current_date_time = datetime.now()
+    current_date_time = datetime.now(tz=pytz.timezone('Africa/Tunis'))
     data[HistoryDepartmentS.DATE_TIME] = current_date_time
 
     inserted_id = await db.get_collection(Collections.HISTORY_DEPARTMENT).insert_one(
@@ -164,7 +164,7 @@ async def add_secure_history(history_secure_model: HistorySecure, request: Reque
     api_key: str = request.headers.get('Authorization')
     await check_permission_pi(api_key)
     data = history_secure_model.model_dump()
-    current_date_time = datetime.now()
+    current_date_time = datetime.now(tz=pytz.timezone('Africa/Tunis'))
     data[HistorySecureS.DATE_TIME] = current_date_time
     inserted_id = await db.get_collection(Collections.HISTORY_SECURE).insert_one(
         data)  # this is the only await should be executed
@@ -211,8 +211,8 @@ async def addSession(sessionRequest: SessionRequest, current_user=Depends(get_cu
         )
     department_id = current_user.get(schemes.User.ID_DEPARTMENT)
     department_ep = 'NC'  # Not Connected XD
-    updated_at = datetime.now()
-    created_at = datetime.now()
+    updated_at = datetime.now(tz=pytz.timezone('Africa/Tunis'))
+    created_at = datetime.now(tz=pytz.timezone('Africa/Tunis'))
     dict_of_session = sessionRequest.model_dump(by_alias=True)
     dict_of_session.update({schemes.Session.D_ID: department_id})
     dict_of_session.update({schemes.Session.D_EP: department_ep})
@@ -255,8 +255,8 @@ async def add_project(project_: Project.Project, current_user: dict = Depends(ge
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Bad Department id"
         )
-    json_format.update({'create_at: ': datetime.now()})
-    json_format.update({'update_at': datetime.now()})
+    json_format.update({'create_at: ': datetime.now(tz=pytz.timezone('Africa/Tunis'))})
+    json_format.update({'update_at': datetime.now(tz=pytz.timezone('Africa/Tunis'))})
     id_ = await db.get_collection(Collections.PROJECT).insert_one(json_format)
     bson_return = await db.get_collection(Collections.PROJECT).find_one({'_id': ObjectId(id_.inserted_id)})
     fast_mqtt.publish(f'/project/add/{project_.department_identification}', str(id_.inserted_id).encode())
